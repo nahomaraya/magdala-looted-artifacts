@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #12121f;
+  --color-navy-light: #1a1a30;
+  --color-navy-border: #2a2a45;
+  --color-gold: #daa520;
+  --color-gold-dim: #b8860b;
+  --color-parchment: #f4ead5;
+  --color-parchment-dim: #c8b89a;
+  --color-looting: #e74c3c;
+  --color-looting-dim: #c0392b;
+  --color-acquisition: #daa520;
+  --color-location: #52b788;
+  --color-location-dim: #3a8a65;
+
+  --font-heading: var(--font-playfair), Georgia, serif;
+  --font-body: var(--font-source-sans), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: #12121f;
+  color: #f4ead5;
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a30;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a45;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #daa520;
+}
+
+/* ── Leaflet overrides ─────────────────────────────────────── */
+.leaflet-container {
+  background: #12121f;
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+}
+
+.leaflet-tile-pane {
+  filter: saturate(0.3) brightness(0.7);
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1a1a30;
+  border: 1px solid #2a2a45;
+  border-radius: 6px;
+  color: #f4ead5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.leaflet-popup-tip {
+  background: #1a1a30;
+}
+
+.leaflet-popup-content {
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+  margin: 10px 14px;
+}
+
+/* ── Pulsing Magdala marker ────────────────────────────────── */
+.pulse-container {
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+
+.pulse-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #e74c3c;
+  border: 2px solid #ff6b5b;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e74c3c;
+  border-radius: 50%;
+  animation: pulse-anim 2s ease-out infinite;
+  opacity: 0;
+  z-index: 1;
+}
+
+.pulse-ring-2 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-anim {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* ── Flow line animation ───────────────────────────────────── */
+.flow-line-red {
+  animation: dash-flow 2s linear infinite;
+}
+
+.flow-line-gold {
+  animation: dash-flow 2.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 30;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── Detail panel slide-in ─────────────────────────────────── */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.detail-panel-enter {
+  animation: slide-in 0.25s ease-out;
+}
+
+/* ── Spinner ───────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #2a2a45;
+  border-top-color: #daa520;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
