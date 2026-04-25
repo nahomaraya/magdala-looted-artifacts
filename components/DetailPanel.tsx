@@ -1,25 +1,106 @@
 'use client';
 
 import Image from 'next/image';
+import { useState, useEffect, useRef } from 'react';
 import { ProvenanceTimeline } from './ProvenanceTimeline';
-import type { Artifact } from '@/lib/types';
+import type { Artifact, ExternalIdentifier } from '@/lib/types';
 
 interface Props {
   artifact: Artifact;
   onClose: () => void;
 }
 
-const IFRAME_PROPS = ['P5199', 'P1711'];
+// The fallback link is shown immediately. The iframe loads silently in the
+// background (universities / institutional sites can be slow). If it loads
+// successfully it fades in over the fallback; if it never loads the link stays.
+function EmbeddablePreview({ identifier }: { identifier: ExternalIdentifier }) {
+  const [embedded, setEmbedded] = useState(false);
 
-export function DetailPanel({ artifact, onClose }: Props) {
-  const iframeIdentifiers = artifact.identifiers.filter((id) =>
-    IFRAME_PROPS.includes(id.property),
-  );
+  // Reset if the identifier changes (different artifact selected).
+  useEffect(() => { setEmbedded(false); }, [identifier.url]);
 
   return (
-    <div className="detail-panel-enter absolute inset-y-0 right-0 w-[420px] bg-[#12121f] border-l border-[#2a2a45] flex flex-col z-[1000] shadow-2xl overflow-hidden">
+    <div className="relative w-full h-52 bg-[#251406]">
+      {/* Fallback link — always present until the iframe proves it can load */}
+      {!embedded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4 z-10">
+          <p className="text-xs text-[#c8b89a] italic text-center">
+            Loading external content in the background…
+          </p>
+          <a
+            href={identifier.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2 rounded border border-[#daa520]/60 bg-[#daa520]/10 text-[#daa520] text-sm font-heading hover:bg-[#daa520]/20 transition-colors"
+          >
+            View {identifier.propertyLabel} ↗
+          </a>
+        </div>
+      )}
+
+      {/* iframe loads silently; fades in only on success */}
+      <iframe
+        src={identifier.url}
+        onLoad={() => setEmbedded(true)}
+        loading="lazy"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        className={`absolute inset-0 w-full h-full border-0 transition-opacity duration-500 ${
+          embedded ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none'
+        }`}
+        title={`${identifier.propertyLabel} preview`}
+      />
+    </div>
+  );
+}
+
+const PANEL_MIN = 300;
+const PANEL_MAX = 720;
+
+export function DetailPanel({ artifact, onClose }: Props) {
+  const [panelWidth, setPanelWidth] = useState(420);
+  const panelWidthRef = useRef(420);
+  panelWidthRef.current = panelWidth;
+
+  const firstIdentifier = artifact.identifiers[0] ?? null;
+  const showEmbeddedPreview = !artifact.imageUrl && firstIdentifier !== null;
+
+  const startPanelDrag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = panelWidthRef.current;
+
+    const onMove = (ev: MouseEvent) => {
+      // dragging left (negative delta) widens the panel
+      setPanelWidth(Math.max(PANEL_MIN, Math.min(PANEL_MAX, startW + startX - ev.clientX)));
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  return (
+    <div
+      className="detail-panel-enter absolute inset-y-0 right-0 bg-[#1a0e06] border-l border-[#4a2c0e] flex flex-col z-[1000] shadow-2xl overflow-hidden"
+      style={{ width: panelWidth }}
+    >
+      {/* Left-edge drag handle */}
+      <div
+        onMouseDown={startPanelDrag}
+        className="absolute top-0 left-0 bottom-0 w-1 cursor-col-resize group z-20"
+      >
+        <div className="h-full w-full bg-[#4a2c0e] group-hover:bg-[#daa520]/60 transition-colors" />
+      </div>
+
       {/* Header */}
-      <div className="flex items-start justify-between p-4 border-b border-[#2a2a45] flex-shrink-0">
+      <div className="flex items-start justify-between p-4 border-b border-[#4a2c0e] flex-shrink-0">
         <h2
           className="font-heading text-base font-semibold text-[#f4ead5] leading-tight pr-4"
           title={artifact.label}
@@ -28,7 +109,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
         </h2>
         <button
           onClick={onClose}
-          className="flex-shrink-0 p-1 rounded hover:bg-[#2a2a45] text-[#c8b89a] hover:text-[#f4ead5] transition-colors"
+          className="flex-shrink-0 p-1 rounded hover:bg-[#4a2c0e] text-[#c8b89a] hover:text-[#f4ead5] transition-colors"
           aria-label="Close"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,9 +125,9 @@ export function DetailPanel({ artifact, onClose }: Props) {
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
-        {/* Image */}
-        {artifact.imageUrl && (
-          <div className="relative w-full h-52 bg-[#1a1a30]">
+        {/* Image — or embedded identifier if no image available */}
+        {artifact.imageUrl ? (
+          <div className="relative w-full h-52 bg-[#251406]">
             <Image
               src={artifact.imageUrl}
               alt={artifact.label}
@@ -55,7 +136,9 @@ export function DetailPanel({ artifact, onClose }: Props) {
               unoptimized
             />
           </div>
-        )}
+        ) : showEmbeddedPreview ? (
+          <EmbeddablePreview identifier={firstIdentifier!} />
+        ) : null}
 
         <div className="p-4 space-y-5">
           {/* Description */}
@@ -128,30 +211,6 @@ export function DetailPanel({ artifact, onClose }: Props) {
               </div>
             </section>
           )}
-
-          {/* Embedded iframes */}
-          {iframeIdentifiers.map((id) => (
-            <section key={id.property}>
-              <h3 className="font-heading text-xs uppercase tracking-widest text-[#daa520] mb-2">
-                {id.propertyLabel} Preview
-              </h3>
-              <a
-                href={id.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-xs text-[#c8b89a] hover:text-[#daa520] mb-2 truncate"
-              >
-                {id.url}
-              </a>
-              <iframe
-                src={id.url}
-                loading="lazy"
-                sandbox="allow-scripts allow-same-origin allow-popups"
-                className="w-full h-48 rounded border border-[#2a2a45] bg-[#1a1a30]"
-                title={`${id.propertyLabel} viewer`}
-              />
-            </section>
-          ))}
 
           {/* Wikidata link */}
           <a

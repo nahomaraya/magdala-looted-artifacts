@@ -100,9 +100,8 @@ export default function MapView({ artifacts, selectedQID, onSelectArtifact }: Pr
       attributionControl={true}
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        subdomains="abcd"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
       />
 
@@ -151,10 +150,10 @@ export default function MapView({ artifacts, selectedQID, onSelectArtifact }: Pr
         pathOptions={{ color: '#e74c3c', weight: 2, fillColor: '#e74c3c', fillOpacity: 0.08 }}
       >
         <Tooltip direction="top" offset={[0, -18]} permanent={false}>
-          <div style={{ fontFamily: 'inherit', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif', textAlign: 'center' }}>
             <strong style={{ color: '#e74c3c' }}>Magdala</strong>
             <br />
-            <span style={{ fontSize: 11, color: '#c8b89a' }}>Origin — Ethiopia, 1868</span>
+            <span style={{ fontSize: 11, color: '#c8b89a', fontStyle: 'italic' }}>Origin — Ethiopia, 1868</span>
           </div>
         </Tooltip>
       </CircleMarker>
@@ -189,10 +188,10 @@ export default function MapView({ artifacts, selectedQID, onSelectArtifact }: Pr
             }}
           >
             <Tooltip direction="top" offset={[0, -radius]} opacity={1}>
-              <div style={{ fontFamily: 'inherit' }}>
+              <div style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
                 <strong style={{ color: '#52b788' }}>{group.name}</strong>
                 <br />
-                <span style={{ fontSize: 11, color: '#c8b89a' }}>
+                <span style={{ fontSize: 11, color: '#c8b89a', fontStyle: 'italic' }}>
                   {count} artifact{count !== 1 ? 's' : ''}
                 </span>
                 {group.artifacts.map((a) => (

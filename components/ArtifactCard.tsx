@@ -28,12 +28,12 @@ export function ArtifactCard({ artifact, selected, onClick }: Props) {
       className={`w-full text-left p-3 rounded-lg border transition-all duration-150 ${
         selected
           ? 'border-[#daa520] bg-[#daa520]/10'
-          : 'border-[#2a2a45] bg-[#1a1a30] hover:border-[#daa520]/50 hover:bg-[#1a1a30]/80'
+          : 'border-[#4a2c0e] bg-[#251406] hover:border-[#daa520]/50 hover:bg-[#251406]/80'
       }`}
     >
       <div className="flex gap-3">
         {/* Thumbnail */}
-        <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-[#12121f] border border-[#2a2a45]">
+        <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-[#1a0e06] border border-[#4a2c0e]">
           {artifact.imageUrl ? (
             <Image
               src={artifact.imageUrl}
@@ -44,7 +44,7 @@ export function ArtifactCard({ artifact, selected, onClick }: Props) {
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#2a2a45]">
+            <div className="w-full h-full flex items-center justify-center text-[#4a2c0e]">
               <svg
                 className="w-6 h-6"
                 fill="none"

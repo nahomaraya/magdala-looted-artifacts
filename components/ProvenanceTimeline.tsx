@@ -73,12 +73,31 @@ export function ProvenanceTimeline({ events, originLabel, currentLocationName }:
             subtitle={event.date}
             isLast={isLast}
           >
+            {/* Ownership chain */}
+            {(event.beforehandOwnedBy || event.afterwardOwnedBy) && (
+              <div className="mt-2 flex flex-col gap-1">
+                {event.beforehandOwnedBy && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-[#c8b89a] shrink-0">Beforehand owned by</span>
+                    <span className="text-[#f4ead5]">{event.beforehandOwnedBy.label}</span>
+                  </div>
+                )}
+                {event.afterwardOwnedBy && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-[#c8b89a] shrink-0">Afterward owned by</span>
+                    <span className="text-[#f4ead5]">{event.afterwardOwnedBy.label}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Participants */}
             {event.participants.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {event.participants.map((p) => (
                   <div
                     key={p.qid}
-                    className="flex items-center gap-1.5 bg-[#12121f] border border-[#2a2a45] rounded-full px-2 py-1"
+                    className="flex items-center gap-1.5 bg-[#1a0e06] border border-[#4a2c0e] rounded-full px-2 py-1"
                   >
                     {p.portraitUrl ? (
                       <Image
@@ -90,7 +109,7 @@ export function ProvenanceTimeline({ events, originLabel, currentLocationName }:
                         unoptimized
                       />
                     ) : (
-                      <span className="w-5 h-5 rounded-full bg-[#2a2a45] flex items-center justify-center text-[8px] text-[#c8b89a] uppercase">
+                      <span className="w-5 h-5 rounded-full bg-[#4a2c0e] flex items-center justify-center text-[8px] text-[#c8b89a] uppercase">
                         {p.label[0]}
                       </span>
                     )}
@@ -132,7 +151,7 @@ function TimelineRow({
         <div
           className={`w-3 h-3 rounded-full border-2 flex-shrink-0 mt-1 ${dotColor}`}
         />
-        {!isLast && <div className="w-px flex-1 bg-[#2a2a45] mt-1 mb-1 min-h-[20px]" />}
+        {!isLast && <div className="w-px flex-1 bg-[#4a2c0e] mt-1 mb-1 min-h-[20px]" />}
       </div>
 
       {/* Content */}

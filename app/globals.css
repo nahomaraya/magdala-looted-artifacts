@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-navy: #12121f;
-  --color-navy-light: #1a1a30;
-  --color-navy-border: #2a2a45;
+  --color-navy: #1a0e06;
+  --color-navy-light: #251406;
+  --color-navy-border: #4a2c0e;
   --color-gold: #daa520;
   --color-gold-dim: #b8860b;
   --color-parchment: #f4ead5;
@@ -25,9 +25,12 @@
 html,
 body {
   height: 100%;
-  background-color: #12121f;
+  background-color: #1a0e06;
   color: #f4ead5;
   font-family: var(--font-source-sans), system-ui, sans-serif;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(218, 165, 32, 0.04) 0%, transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -42,10 +45,10 @@ h4 {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1a1a30;
+  background: #251406;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a45;
+  background: #4a2c0e;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -54,24 +57,24 @@ h4 {
 
 /* ── Leaflet overrides ─────────────────────────────────────── */
 .leaflet-container {
-  background: #12121f;
+  background: #1a0e06;
   font-family: var(--font-source-sans), system-ui, sans-serif;
 }
 
 .leaflet-tile-pane {
-  filter: saturate(0.3) brightness(0.7);
+  filter: none;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #1a1a30;
-  border: 1px solid #2a2a45;
+  background: #251406;
+  border: 1px solid #4a2c0e;
   border-radius: 6px;
   color: #f4ead5;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
 }
 
 .leaflet-popup-tip {
-  background: #1a1a30;
+  background: #251406;
 }
 
 .leaflet-popup-content {
@@ -172,7 +175,7 @@ h4 {
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #2a2a45;
+  border: 3px solid #4a2c0e;
   border-top-color: #daa520;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

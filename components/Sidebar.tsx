@@ -25,9 +25,9 @@ export function Sidebar({
   const uniqueLocations = new Set(artifacts.map((a) => a.currentLocation.name)).size;
 
   return (
-    <aside className="flex flex-col h-full bg-[#12121f] border-r border-[#2a2a45]">
+    <aside className="flex flex-col h-full bg-[#1a0e06] border-r border-[#4a2c0e]">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-[#2a2a45] flex-shrink-0">
+      <div className="px-4 pt-4 pb-3 border-b border-[#4a2c0e] flex-shrink-0">
         <h2 className="font-heading text-xs font-semibold uppercase tracking-widest text-[#daa520] mb-1">
           Artifacts
         </h2>

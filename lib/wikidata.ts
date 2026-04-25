@@ -345,7 +345,9 @@ function addParticipantToEvent(
 
 async function buildProvenanceChain(qid: string): Promise<ProvenanceEvent[]> {
   const query = `
-SELECT ?eventType ?eventLabel ?date ?periodLabel ?locationLabel ?participant ?participantLabel WHERE {
+SELECT ?eventType ?eventLabel ?date ?periodLabel ?locationLabel
+       ?participant ?participantLabel
+       ?beforeOwner ?beforeOwnerLabel ?afterOwner ?afterOwnerLabel WHERE {
   wd:${qid} p:P793 ?stmt .
   ?stmt ps:P793 ?eventType .
   OPTIONAL { ?stmt pq:P585 ?date }
@@ -363,6 +365,16 @@ SELECT ?eventType ?eventLabel ?date ?periodLabel ?locationLabel ?participant ?pa
     ?stmt pq:P710 ?participant .
     ?participant rdfs:label ?participantLabel .
     FILTER(LANG(?participantLabel) = "en")
+  }
+  OPTIONAL {
+    ?stmt pq:P11811 ?beforeOwner .
+    ?beforeOwner rdfs:label ?beforeOwnerLabel .
+    FILTER(LANG(?beforeOwnerLabel) = "en")
+  }
+  OPTIONAL {
+    ?stmt pq:P11812 ?afterOwner .
+    ?afterOwner rdfs:label ?afterOwnerLabel .
+    FILTER(LANG(?afterOwnerLabel) = "en")
   }
   OPTIONAL {
     ?eventType rdfs:label ?eventLabel .
@@ -385,30 +397,84 @@ ORDER BY ?date`;
 
       const event = eventMap.get(key)!;
       addParticipantToEvent(event, b);
+
+      // Ownership qualifiers: take first non-null value seen for this event group
+      if (!event.beforehandOwnedBy && b.beforeOwner?.value) {
+        event.beforehandOwnedBy = {
+          qid: b.beforeOwner.value.split('/').pop()!,
+          label: b.beforeOwnerLabel?.value ?? b.beforeOwner.value.split('/').pop()!,
+        };
+      }
+      if (!event.afterwardOwnedBy && b.afterOwner?.value) {
+        event.afterwardOwnedBy = {
+          qid: b.afterOwner.value.split('/').pop()!,
+          label: b.afterOwnerLabel?.value ?? b.afterOwner.value.split('/').pop()!,
+        };
+      }
     }
 
-    return Array.from(eventMap.values());
+    const COLOR_ORDER: Record<string, number> = { red: 0, gold: 1, neutral: 2 };
+    return Array.from(eventMap.values()).sort(
+      (a, b) => (COLOR_ORDER[a.color] ?? 2) - (COLOR_ORDER[b.color] ?? 2),
+    );
   } catch (e) {
     console.error(`Provenance query failed for ${qid}:`, e);
     return [];
   }
 }
 
-// ─── External Identifiers ─────────────────────────────────────────────────
+// ─── Reference URLs ───────────────────────────────────────────────────────
+// For each statement on every item, walks the prov:wasDerivedFrom reference
+// blocks and collects every P854 (reference URL). These are the actual
+// museum/collection pages cited as sources — they point directly to the
+// artifact's live catalogue entry.
 
-function extractIdentifiers(statements: unknown): ExternalIdentifier[] {
-  const results: ExternalIdentifier[] = [];
-  for (const [prop, tpl] of Object.entries(IDENTIFIER_TEMPLATES)) {
-    const value = getStringContent(statements, prop);
-    if (!value) continue;
-    results.push({
-      property: prop,
-      propertyLabel: tpl.label,
-      value,
-      url: tpl.template.replace('{value}', encodeURIComponent(value)),
-    });
+async function batchFetchReferenceUrls(
+  qids: string[],
+): Promise<Map<string, ExternalIdentifier[]>> {
+  const result = new Map<string, ExternalIdentifier[]>();
+  if (qids.length === 0) return result;
+
+  const CHUNK = 50;
+  for (let i = 0; i < qids.length; i += CHUNK) {
+    const chunk = qids.slice(i, i + CHUNK);
+    const values = chunk.map((q) => `wd:${q}`).join(' ');
+
+    const query = `
+SELECT DISTINCT ?item ?prop ?propLabel ?refUrl WHERE {
+  VALUES ?item { ${values} }
+  ?item ?p ?statement .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference pr:P854 ?refUrl .
+  ?prop wikibase:claim ?p .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en".
   }
-  return results;
+}`;
+
+    try {
+      const bindings = await runSparql(query);
+      for (const b of bindings) {
+        const qid = b.item?.value?.split('/').pop();
+        const prop = b.prop?.value?.split('/').pop();
+        const refUrl = b.refUrl?.value;
+        if (!qid || !prop || !refUrl) continue;
+
+        const propLabel = b.propLabel?.value ?? prop;
+
+        if (!result.has(qid)) result.set(qid, []);
+        const ids = result.get(qid)!;
+        // Deduplicate by URL
+        if (!ids.some((id) => id.url === refUrl)) {
+          ids.push({ property: prop, propertyLabel: propLabel, value: refUrl, url: refUrl });
+        }
+      }
+    } catch (e) {
+      console.error('batchFetchReferenceUrls failed:', e);
+    }
+  }
+
+  return result;
 }
 
 // ─── Participant Portraits ────────────────────────────────────────────────
@@ -443,6 +509,7 @@ interface BasicData {
   p5199?: string;
   p1711?: string;
   p214?: string;
+  identifiers?: ExternalIdentifier[];
 }
 
 function parseWktCoords(wkt: string): [number, number] | undefined {
@@ -608,22 +675,26 @@ async function enrichArtifact(
     );
 
     // ── External identifiers ───────────────────────────────────
-    const identifiers: ExternalIdentifier[] = [];
-    const idMap: Record<string, string | undefined> = {
-      P5199: basic.p5199,
-      P1711: basic.p1711,
-      P214: basic.p214,
-    };
-    for (const [prop, value] of Object.entries(idMap)) {
-      if (!value) continue;
-      const tpl = IDENTIFIER_TEMPLATES[prop];
-      if (!tpl) continue;
-      identifiers.push({
-        property: prop,
-        propertyLabel: tpl.label,
-        value,
-        url: tpl.template.replace('{value}', encodeURIComponent(value)),
-      });
+    // Prefer dynamically-discovered identifiers from batchFetchExternalIdentifiers.
+    // Fall back to the hardcoded three (P5199/P1711/P214) only if nothing was found.
+    let identifiers: ExternalIdentifier[] = basic.identifiers ?? [];
+    if (identifiers.length === 0) {
+      const idMap: Record<string, string | undefined> = {
+        P5199: basic.p5199,
+        P1711: basic.p1711,
+        P214: basic.p214,
+      };
+      for (const [prop, value] of Object.entries(idMap)) {
+        if (!value) continue;
+        const tpl = IDENTIFIER_TEMPLATES[prop];
+        if (!tpl) continue;
+        identifiers.push({
+          property: prop,
+          propertyLabel: tpl.label,
+          value,
+          url: tpl.template.replace('{value}', encodeURIComponent(value)),
+        });
+      }
     }
 
     return {
@@ -655,8 +726,18 @@ export async function getAllArtifacts(): Promise<Artifact[]> {
 
   const { qids, dataSource } = await discoverArtifactQIDs();
 
-  // Single batch SPARQL call for all labels, descriptions, locations, identifiers
-  const basicDataMap = await batchFetchBasicData(qids);
+  // Run both batch queries in parallel: basic data + reference URLs on statements
+  const [basicDataMap, identifierMap] = await Promise.all([
+    batchFetchBasicData(qids),
+    batchFetchReferenceUrls(qids),
+  ]);
+
+  // Merge dynamic identifiers into basic data entries
+  for (const [qid, ids] of identifierMap) {
+    const entry = basicDataMap.get(qid) ?? {};
+    entry.identifiers = ids;
+    basicDataMap.set(qid, entry);
+  }
 
   const results = await Promise.all(
     qids.map((qid) => limit(() => enrichArtifact(qid, dataSource, basicDataMap.get(qid) ?? {}))),

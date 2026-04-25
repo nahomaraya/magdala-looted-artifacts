@@ -6,6 +6,11 @@ export interface Participant {
   portraitUrl?: string;
 }
 
+export interface OwnershipLink {
+  qid: string;
+  label: string;
+}
+
 export interface ProvenanceEvent {
   eventType: string;
   eventQID: string;
@@ -16,6 +21,8 @@ export interface ProvenanceEvent {
   location?: string;
   locationCoords?: [number, number];
   participants: Participant[];
+  beforehandOwnedBy?: OwnershipLink;
+  afterwardOwnedBy?: OwnershipLink;
 }
 
 export interface ExternalIdentifier {
