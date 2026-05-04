@@ -56,11 +56,11 @@ function EmbeddablePreview({ identifier }: { identifier: ExternalIdentifier }) {
   }, [identifier.url]);
 
   return (
-    <div className="relative w-full h-52 bg-[#251406]">
+    <div className="relative w-full h-52 bg-navy-light">
       {/* Fallback link — always present until the iframe proves it can load */}
       {!embedded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4 z-10">
-          <p className="text-xs text-[#c8b89a] italic text-center">
+          <p className="text-xs text-parchment-dim italic text-center">
             Loading external content in the background…
           </p>
           <a
@@ -127,7 +127,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
 
   return (
     <div
-      className="detail-panel-enter absolute inset-y-0 right-0 bg-[#1a0e06] border-l border-[#4a2c0e] flex flex-col z-[1000] shadow-2xl overflow-hidden"
+      className="detail-panel-enter absolute inset-y-0 right-0 bg-navy border-l border-navy-border flex flex-col z-1000 shadow-2xl overflow-hidden"
       style={{ width: panelWidth }}
     >
       {/* Left-edge drag handle */}
@@ -135,20 +135,20 @@ export function DetailPanel({ artifact, onClose }: Props) {
         onMouseDown={startPanelDrag}
         className="absolute top-0 left-0 bottom-0 w-1 cursor-col-resize group z-20"
       >
-        <div className="h-full w-full bg-[#4a2c0e] group-hover:bg-[#daa520]/60 transition-colors" />
+        <div className="h-full w-full bg-navy-border group-hover:bg-[#daa520]/60 transition-colors" />
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between p-4 border-b border-[#4a2c0e] flex-shrink-0">
+      <div className="flex items-start justify-between p-4 border-b border-navy-border shrink-0">
         <h2
-          className="font-heading text-base font-semibold text-[#f4ead5] leading-tight pr-4"
+          className="font-heading text-base font-semibold text-parchment leading-tight pr-4"
           title={artifact.label}
         >
           {artifact.label}
         </h2>
         <button
           onClick={onClose}
-          className="flex-shrink-0 p-1 rounded hover:bg-[#4a2c0e] text-[#c8b89a] hover:text-[#f4ead5] transition-colors"
+          className="shrink-0 p-1 rounded hover:bg-navy-border text-parchment-dim hover:text-parchment transition-colors"
           aria-label="Close"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +166,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
       <div className="flex-1 overflow-y-auto">
         {/* Image — or embedded identifier if no image available */}
         {artifact.imageUrl ? (
-          <div className="relative w-full h-52 bg-[#251406]">
+          <div className="relative w-full h-52 bg-navy-light">
             <Image
               src={artifact.imageUrl}
               alt={artifact.label}
@@ -182,17 +182,17 @@ export function DetailPanel({ artifact, onClose }: Props) {
         <div className="p-4 space-y-5">
           {/* Description */}
           {artifact.description && (
-            <p className="text-sm text-[#c8b89a] leading-relaxed">{artifact.description}</p>
+            <p className="text-sm text-parchment-dim leading-relaxed">{artifact.description}</p>
           )}
 
           {/* Current location */}
-          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-[#52b788]/10 border border-[#52b788]/30">
-            <span className="w-2 h-2 rounded-full bg-[#52b788] flex-shrink-0" />
+          <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-location/10 border border-location/30">
+            <span className="w-2 h-2 rounded-full bg-location shrink-0" />
             <div>
-              <span className="text-xs text-[#52b788] uppercase tracking-wider font-semibold">
+              <span className="text-xs text-location uppercase tracking-wider font-semibold">
                 Current Location
               </span>
-              <p className="text-sm text-[#f4ead5]">{artifact.currentLocation.name}</p>
+              <p className="text-sm text-parchment">{artifact.currentLocation.name}</p>
             </div>
           </div>
 
@@ -207,7 +207,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
                 currentLocationName={artifact.currentLocation.name}
               />
             ) : (
-              <p className="text-xs text-[#c8b89a]">No provenance data on Wikidata.</p>
+              <p className="text-xs text-parchment-dim">No provenance data on Wikidata.</p>
             )}
           </section>
 
@@ -224,7 +224,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
                     href={id.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between text-sm text-[#c8b89a] hover:text-[#daa520] transition-colors group"
+                    className="flex items-center justify-between text-sm text-parchment-dim hover:text-[#daa520] transition-colors group"
                   >
                     <span className="flex items-center gap-1 text-xs opacity-70 group-hover:opacity-100">
                       {id.value}
@@ -253,7 +253,7 @@ export function DetailPanel({ artifact, onClose }: Props) {
             href={artifact.wikidataUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs text-[#c8b89a] hover:text-[#daa520] transition-colors"
+            className="flex items-center gap-2 text-xs text-parchment-dim hover:text-[#daa520] transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />

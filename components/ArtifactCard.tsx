@@ -28,12 +28,12 @@ export function ArtifactCard({ artifact, selected, onClick }: Props) {
       className={`w-full text-left p-3 rounded-lg border transition-all duration-150 ${
         selected
           ? 'border-[#daa520] bg-[#daa520]/10'
-          : 'border-[#4a2c0e] bg-[#251406] hover:border-[#daa520]/50 hover:bg-[#251406]/80'
+          : 'border-navy-border bg-navy-light hover:border-[#daa520]/50 hover:bg-navy-light/80'
       }`}
     >
       <div className="flex gap-3">
         {/* Thumbnail */}
-        <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-[#1a0e06] border border-[#4a2c0e]">
+        <div className="shrink-0 w-16 h-16 rounded overflow-hidden bg-navy border border-navy-border">
           {artifact.imageUrl ? (
             <Image
               src={artifact.imageUrl}
@@ -44,7 +44,7 @@ export function ArtifactCard({ artifact, selected, onClick }: Props) {
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#4a2c0e]">
+            <div className="w-full h-full flex items-center justify-center text-navy-border">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -65,22 +65,22 @@ export function ArtifactCard({ artifact, selected, onClick }: Props) {
         {/* Content */}
         <div className="flex-1 min-w-0">
           <h3
-            className="font-heading text-sm font-semibold text-[#f4ead5] leading-tight mb-1 truncate"
+            className="font-heading text-sm font-semibold text-parchment leading-tight mb-1 truncate"
             title={artifact.label}
           >
             {artifact.label}
           </h3>
 
           {artifact.description && (
-            <p className="text-xs text-[#c8b89a] line-clamp-2 leading-relaxed mb-2">
+            <p className="text-xs text-parchment-dim line-clamp-2 leading-relaxed mb-2">
               {artifact.description}
             </p>
           )}
 
           <div className="flex flex-wrap items-center gap-1.5">
             {/* Location badge */}
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#52b788]/20 text-[#52b788] border border-[#52b788]/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#52b788]" />
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-location/20 text-location border border-location/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-location" />
               {artifact.currentLocation.name}
             </span>
 

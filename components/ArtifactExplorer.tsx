@@ -74,14 +74,14 @@ export function ArtifactExplorer() {
   const dataSource = artifacts[0]?.dataSource;
 
   return (
-    <div className="flex flex-col h-screen bg-[#1a0e06]">
+    <div className="flex flex-col h-screen bg-navy">
       {/* Header */}
-      <header className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-b border-[#4a2c0e] bg-[#1a0e06] z-10">
+      <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-navy-border bg-navy z-10">
         <div>
-          <h1 className="font-heading text-lg font-bold text-[#f4ead5] leading-tight">
+          <h1 className="font-heading text-lg font-bold text-parchment leading-tight">
             Battle of Magdala
           </h1>
-          <p className="text-xs text-[#c8b89a] leading-tight">
+          <p className="text-xs text-parchment-dim leading-tight">
             Looted Artifacts — 1868
           </p>
         </div>
@@ -89,11 +89,11 @@ export function ArtifactExplorer() {
         <div className="flex items-center gap-4">
           {!isLoading && !isError && artifacts.length > 0 && (
             <>
-              <span className="text-xs text-[#c8b89a]">
-                <span className="text-[#f4ead5] font-semibold">{artifacts.length}</span> artifacts
+              <span className="text-xs text-parchment-dim">
+                <span className="text-parchment font-semibold">{artifacts.length}</span> artifacts
               </span>
-              <span className="text-xs text-[#c8b89a]">
-                <span className="text-[#f4ead5] font-semibold">{uniqueLocations}</span> institutions
+              <span className="text-xs text-parchment-dim">
+                <span className="text-parchment font-semibold">{uniqueLocations}</span> institutions
               </span>
             </>
           )}
@@ -103,7 +103,7 @@ export function ArtifactExplorer() {
               Curated data
             </span>
           ) : dataSource === 'sparql' ? (
-            <span className="px-2 py-1 text-xs rounded border border-[#52b788]/50 text-[#52b788]">
+            <span className="px-2 py-1 text-xs rounded border border-location/50 text-location">
               Live Wikidata
             </span>
           ) : null}
@@ -112,7 +112,7 @@ export function ArtifactExplorer() {
             href="https://www.wikidata.org/wiki/Q947667"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#c8b89a] hover:text-[#daa520] transition-colors"
+            className="text-xs text-parchment-dim hover:text-[#daa520] transition-colors"
           >
             About ↗
           </a>
@@ -122,7 +122,7 @@ export function ArtifactExplorer() {
       {/* Main layout */}
       <div className="flex flex-1 min-h-0">
         {/* Sidebar + drag handle */}
-        <div className="relative flex-shrink-0 h-full overflow-hidden" style={{ width: sidebarWidth }}>
+        <div className="relative shrink-0 h-full overflow-hidden" style={{ width: sidebarWidth }}>
           <Sidebar
             artifacts={artifacts}
             selectedQID={selectedQID}
@@ -137,17 +137,17 @@ export function ArtifactExplorer() {
             onMouseDown={startSidebarDrag}
             className="absolute top-0 right-0 bottom-0 w-1 cursor-col-resize group z-20"
           >
-            <div className="h-full w-full bg-[#4a2c0e] group-hover:bg-[#daa520]/60 transition-colors" />
+            <div className="h-full w-full bg-navy-border group-hover:bg-[#daa520]/60 transition-colors" />
           </div>
         </div>
 
         {/* Map area */}
         <div className="flex-1 relative h-full overflow-hidden">
           {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-[#1a0e06]">
+            <div className="absolute inset-0 flex items-center justify-center bg-navy">
               <div className="text-center">
                 <div className="spinner mx-auto mb-4" />
-                <p className="text-sm text-[#c8b89a]">Loading map data…</p>
+                <p className="text-sm text-parchment-dim">Loading map data…</p>
               </div>
             </div>
           ) : (

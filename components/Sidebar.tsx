@@ -25,14 +25,14 @@ export function Sidebar({
   const uniqueLocations = new Set(artifacts.map((a) => a.currentLocation.name)).size;
 
   return (
-    <aside className="flex flex-col h-full bg-[#1a0e06] border-r border-[#4a2c0e]">
+    <aside className="flex flex-col h-full bg-navy border-r border-navy-border">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-[#4a2c0e] flex-shrink-0">
+      <div className="px-4 pt-4 pb-3 border-b border-navy-border shrink-0">
         <h2 className="font-heading text-xs font-semibold uppercase tracking-widest text-[#daa520] mb-1">
           Artifacts
         </h2>
         {!isLoading && !isError && (
-          <p className="text-xs text-[#c8b89a]">
+          <p className="text-xs text-parchment-dim">
             {artifacts.length} artifacts · {uniqueLocations} institution
             {uniqueLocations !== 1 ? 's' : ''}
             {dataSource === 'fallback' && (
@@ -49,13 +49,13 @@ export function Sidebar({
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16 gap-4">
             <div className="spinner" />
-            <p className="text-xs text-[#c8b89a]">Fetching from Wikidata…</p>
+            <p className="text-xs text-parchment-dim">Fetching from Wikidata…</p>
           </div>
         )}
 
         {isError && (
           <div className="flex flex-col items-center justify-center py-16 gap-4 px-4 text-center">
-            <p className="text-sm text-[#e74c3c]">Failed to load artifacts.</p>
+            <p className="text-sm text-looting">Failed to load artifacts.</p>
             <button
               onClick={onRetry}
               className="px-4 py-2 rounded border border-[#daa520]/50 text-[#daa520] text-sm hover:bg-[#daa520]/10 transition-colors"
@@ -67,7 +67,7 @@ export function Sidebar({
 
         {!isLoading && !isError && artifacts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-2 px-4 text-center">
-            <p className="text-sm text-[#c8b89a]">No artifacts found.</p>
+            <p className="text-sm text-parchment-dim">No artifacts found.</p>
           </div>
         )}
 
