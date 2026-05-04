@@ -3,7 +3,6 @@ import {
   SPARQL_ENDPOINT,
   WIKIDATA_REST_BASE,
   WIKIDATA_OAUTH_TOKEN_URL,
-  COMMONS_API,
   USER_AGENT,
   INSTITUTION_COORDS,
   DEFAULT_COORDS,
@@ -12,6 +11,10 @@ import {
   FALLBACK_QIDS,
 } from './constants';
 import type { Artifact, ProvenanceEvent, ExternalIdentifier, Participant } from './types';
+import { resolveCommonsImage } from './utils/resolveCommonsImage';
+import { buildProvenanceChain } from './utils/buildProvenanceChain';
+import { batchFetchReferenceUrls } from './utils/batchFetchReferenceUrls';
+import { batchFetchBasicData } from './utils/batchFetchBasicData';
 
 // ─── OAuth2 Token Cache ────────────────────────────────────────────────────
 
@@ -233,36 +236,6 @@ function getDescription(entity: Record<string, unknown>): string | undefined {
   return descriptions?.en?.value;
 }
 
-// ─── Image Resolution ──────────────────────────────────────────────────────
-
-async function resolveCommonsImage(filename: string): Promise<string | undefined> {
-  const url = new URL(COMMONS_API);
-  url.searchParams.set('action', 'query');
-  url.searchParams.set('titles', `File:${filename}`);
-  url.searchParams.set('prop', 'imageinfo');
-  url.searchParams.set('iiprop', 'url');
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('origin', '*');
-
-  try {
-    const res = await fetch(url.toString(), {
-      headers: { 'User-Agent': USER_AGENT },
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return undefined;
-    const data = await res.json();
-    const pages = data?.query?.pages;
-    if (!pages) return undefined;
-    for (const page of Object.values(pages) as Record<string, unknown>[]) {
-      const imgUrl = (page?.imageinfo as { url: string }[] | undefined)?.[0]?.url;
-      if (imgUrl) return imgUrl;
-    }
-  } catch {
-    // ignore
-  }
-  return undefined;
-}
-
 // ─── Coordinate Resolution ─────────────────────────────────────────────────
 
 function lookupByName(name: string): [number, number] | undefined {
@@ -308,7 +281,7 @@ function cleanDate(raw: string): string {
   return raw.replace(/^\+/, '').split('T')[0];
 }
 
-function createProvenanceEvent(
+export function createProvenanceEvent(
   eventQID: string,
   binding: Record<string, { value: string; type: string }>,
 ): ProvenanceEvent {
@@ -328,7 +301,7 @@ function createProvenanceEvent(
   };
 }
 
-function addParticipantToEvent(
+export function addParticipantToEvent(
   event: ProvenanceEvent,
   binding: Record<string, { value: string; type: string }>,
 ): void {
@@ -341,140 +314,6 @@ function addParticipantToEvent(
       });
     }
   }
-}
-
-async function buildProvenanceChain(qid: string): Promise<ProvenanceEvent[]> {
-  const query = `
-SELECT ?eventType ?eventLabel ?date ?periodLabel ?locationLabel
-       ?participant ?participantLabel
-       ?beforeOwner ?beforeOwnerLabel ?afterOwner ?afterOwnerLabel WHERE {
-  wd:${qid} p:P793 ?stmt .
-  ?stmt ps:P793 ?eventType .
-  OPTIONAL { ?stmt pq:P585 ?date }
-  OPTIONAL {
-    ?stmt pq:P2348 ?period .
-    ?period rdfs:label ?periodLabel .
-    FILTER(LANG(?periodLabel) = "en")
-  }
-  OPTIONAL {
-    ?stmt pq:P276 ?location .
-    ?location rdfs:label ?locationLabel .
-    FILTER(LANG(?locationLabel) = "en")
-  }
-  OPTIONAL {
-    ?stmt pq:P710 ?participant .
-    ?participant rdfs:label ?participantLabel .
-    FILTER(LANG(?participantLabel) = "en")
-  }
-  OPTIONAL {
-    ?stmt pq:P11811 ?beforeOwner .
-    ?beforeOwner rdfs:label ?beforeOwnerLabel .
-    FILTER(LANG(?beforeOwnerLabel) = "en")
-  }
-  OPTIONAL {
-    ?stmt pq:P11812 ?afterOwner .
-    ?afterOwner rdfs:label ?afterOwnerLabel .
-    FILTER(LANG(?afterOwnerLabel) = "en")
-  }
-  OPTIONAL {
-    ?eventType rdfs:label ?eventLabel .
-    FILTER(LANG(?eventLabel) = "en")
-  }
-}
-ORDER BY ?date`;
-
-  try {
-    const bindings = await runSparql(query);
-    const eventMap = new Map<string, ProvenanceEvent>();
-
-    for (const b of bindings) {
-      const eventQID = b.eventType?.value?.split('/').pop() ?? '';
-      const key = `${eventQID}_${b.date?.value ?? ''}_${b.locationLabel?.value ?? ''}`;
-
-      if (!eventMap.has(key)) {
-        eventMap.set(key, createProvenanceEvent(eventQID, b));
-      }
-
-      const event = eventMap.get(key)!;
-      addParticipantToEvent(event, b);
-
-      // Ownership qualifiers: take first non-null value seen for this event group
-      if (!event.beforehandOwnedBy && b.beforeOwner?.value) {
-        event.beforehandOwnedBy = {
-          qid: b.beforeOwner.value.split('/').pop()!,
-          label: b.beforeOwnerLabel?.value ?? b.beforeOwner.value.split('/').pop()!,
-        };
-      }
-      if (!event.afterwardOwnedBy && b.afterOwner?.value) {
-        event.afterwardOwnedBy = {
-          qid: b.afterOwner.value.split('/').pop()!,
-          label: b.afterOwnerLabel?.value ?? b.afterOwner.value.split('/').pop()!,
-        };
-      }
-    }
-
-    const COLOR_ORDER: Record<string, number> = { red: 0, gold: 1, neutral: 2 };
-    return Array.from(eventMap.values()).sort(
-      (a, b) => (COLOR_ORDER[a.color] ?? 2) - (COLOR_ORDER[b.color] ?? 2),
-    );
-  } catch (e) {
-    console.error(`Provenance query failed for ${qid}:`, e);
-    return [];
-  }
-}
-
-// ─── Reference URLs ───────────────────────────────────────────────────────
-// For each statement on every item, walks the prov:wasDerivedFrom reference
-// blocks and collects every P854 (reference URL). These are the actual
-// museum/collection pages cited as sources — they point directly to the
-// artifact's live catalogue entry.
-
-async function batchFetchReferenceUrls(
-  qids: string[],
-): Promise<Map<string, ExternalIdentifier[]>> {
-  const result = new Map<string, ExternalIdentifier[]>();
-  if (qids.length === 0) return result;
-
-  const CHUNK = 50;
-  for (let i = 0; i < qids.length; i += CHUNK) {
-    const chunk = qids.slice(i, i + CHUNK);
-    const values = chunk.map((q) => `wd:${q}`).join(' ');
-
-    const query = `
-SELECT DISTINCT ?item ?prop ?propLabel ?refUrl WHERE {
-  VALUES ?item { ${values} }
-  ?item ?p ?statement .
-  ?statement prov:wasDerivedFrom ?reference .
-  ?reference pr:P854 ?refUrl .
-  ?prop wikibase:claim ?p .
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "en".
-  }
-}`;
-
-    try {
-      const bindings = await runSparql(query);
-      for (const b of bindings) {
-        const qid = b.item?.value?.split('/').pop();
-        const prop = b.prop?.value?.split('/').pop();
-        const refUrl = b.refUrl?.value;
-        if (!qid || !prop || !refUrl) continue;
-
-        const propLabel = b.propLabel?.value ?? prop;
-
-        if (!result.has(qid)) result.set(qid, []);
-        const ids = result.get(qid)!;
-        // Deduplicate by URL
-        if (!ids.some((id) => id.url === refUrl)) {
-          ids.push({ property: prop, propertyLabel: propLabel, value: refUrl, url: refUrl });
-        }
-      }
-    } catch (e) {
-      console.error('batchFetchReferenceUrls failed:', e);
-    }
-  }
-
-  return result;
 }
 
 // ─── Participant Portraits ────────────────────────────────────────────────
@@ -500,7 +339,7 @@ async function resolvePortraits(participants: Participant[]): Promise<Participan
 // Uses wikibase:label service which auto-falls back through en/fr/de/am/mul,
 // and fetches location + coordinates in one round trip.
 
-interface BasicData {
+export interface BasicData {
   label?: string;
   description?: string;
   imageFilename?: string;
@@ -512,7 +351,7 @@ interface BasicData {
   identifiers?: ExternalIdentifier[];
 }
 
-function parseWktCoords(wkt: string): [number, number] | undefined {
+export function parseWktCoords(wkt: string): [number, number] | undefined {
   // WKT format: "Point(longitude latitude)" — note lon comes first
   const match = wkt.match(/Point\(\s*([+-]?\d+(?:\.\d+)?)\s+([+-]?\d+(?:\.\d+)?)\s*\)/i);
   if (!match) return undefined;
@@ -520,83 +359,6 @@ function parseWktCoords(wkt: string): [number, number] | undefined {
   const lat = parseFloat(match[2]);
   if (Number.isNaN(lat) || Number.isNaN(lon)) return undefined;
   return [lat, lon];
-}
-
-async function batchFetchBasicData(qids: string[]): Promise<Map<string, BasicData>> {
-  const result = new Map<string, BasicData>();
-  if (qids.length === 0) return result;
-
-  // Process in chunks of 50 to stay within SPARQL query limits
-  const CHUNK = 50;
-  for (let i = 0; i < qids.length; i += CHUNK) {
-    const chunk = qids.slice(i, i + CHUNK);
-    const values = chunk.map((q) => `wd:${q}`).join(' ');
-
-    const query = `
-SELECT ?item ?itemLabel ?itemDescription ?image
-       ?location ?locationLabel ?locationCoords
-       ?p5199 ?p1711 ?p214
-WHERE {
-  VALUES ?item { ${values} }
-  OPTIONAL { ?item wdt:P18 ?image }
-  OPTIONAL {
-    { ?item wdt:P276 ?location }
-    UNION { ?item wdt:P195 ?location }
-    UNION { ?item wdt:P127 ?location }
-    OPTIONAL { ?location wdt:P625 ?locationCoords }
-  }
-  OPTIONAL { ?item wdt:P5199 ?p5199 }
-  OPTIONAL { ?item wdt:P1711 ?p1711 }
-  OPTIONAL { ?item wdt:P214  ?p214  }
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language "en,fr,de,ar,am,mul".
-  }
-}`;
-
-    try {
-      const bindings = await runSparql(query);
-      for (const b of bindings) {
-        const qid = b.item.value.split('/').pop()!;
-        if (!result.has(qid)) result.set(qid, {});
-        const entry = result.get(qid)!;
-
-        // Label — wikibase:label returns ?itemLabel; skip if it echoes back the QID URI
-        const lv = b.itemLabel?.value;
-        if (lv && lv !== qid && !lv.startsWith('Q') && !entry.label) {
-          entry.label = lv;
-        }
-
-        // Description
-        const dv = b.itemDescription?.value;
-        if (dv && !entry.description) entry.description = dv;
-
-        // Image filename — SPARQL returns the full Special:FilePath URL
-        if (b.image?.value && !entry.imageFilename) {
-          const decoded = decodeURIComponent(b.image.value);
-          const filename = decoded.split('Special:FilePath/').pop();
-          if (filename) entry.imageFilename = filename;
-        }
-
-        // Location name
-        const ln = b.locationLabel?.value;
-        if (ln && !entry.locationName) entry.locationName = ln;
-
-        // Location coordinates (WKT "Point(lon lat)")
-        if (b.locationCoords?.value && !entry.locationCoords) {
-          entry.locationCoords = parseWktCoords(b.locationCoords.value);
-        }
-
-        // External identifiers
-        if (b.p5199?.value && !entry.p5199) entry.p5199 = b.p5199.value;
-        if (b.p1711?.value && !entry.p1711) entry.p1711 = b.p1711.value;
-        if (b.p214?.value  && !entry.p214)  entry.p214  = b.p214.value;
-      }
-    } catch (e) {
-      console.error(`batchFetchBasicData chunk failed:`, e);
-    }
-  }
-
-  return result;
 }
 
 // ─── Artifact Enrichment ──────────────────────────────────────────────────
