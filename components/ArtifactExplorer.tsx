@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { Sidebar } from './Sidebar';
-import { DetailPanel } from './DetailPanel';
+import { DetailPanel, preloadIdentifierUrls } from './DetailPanel';
 import type { Artifact } from '@/lib/types';
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
@@ -37,6 +37,17 @@ export function ArtifactExplorer() {
 
   const handleSelect = useCallback((qid: string | null) => setSelectedQID(qid), []);
   const handleClose = useCallback(() => setSelectedQID(null), []);
+
+  // Background-preload identifier iframes for artifacts without images.
+  // Deferred with setTimeout so the map and sidebar paint first.
+  useEffect(() => {
+    if (artifacts.length === 0) return;
+    const urls = artifacts
+      .filter((a) => !a.imageUrl)
+      .flatMap((a) => a.identifiers.slice(0, 1).map((id) => id.url));
+    const id = setTimeout(() => preloadIdentifierUrls(urls), 500);
+    return () => clearTimeout(id);
+  }, [artifacts]);
 
   const startSidebarDrag = (e: React.MouseEvent) => {
     e.preventDefault();

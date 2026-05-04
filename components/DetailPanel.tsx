@@ -5,6 +5,40 @@ import { useState, useEffect, useRef } from 'react';
 import { ProvenanceTimeline } from './ProvenanceTimeline';
 import type { Artifact, ExternalIdentifier } from '@/lib/types';
 
+// ── Iframe preload cache ──────────────────────────────────────────────────────
+// preloadedSet: URLs for which a hidden preload iframe has been injected.
+// loadedSet:    URLs whose hidden iframe has fired onload (browser cache warm).
+// Both survive across artifact selections and DetailPanel mount/unmount cycles.
+const preloadedSet = new Set<string>();
+const loadedSet = new Set<string>();
+
+export function preloadIdentifierUrls(urls: string[]): void {
+  if (typeof document === 'undefined') return;
+
+  let container = document.getElementById('__iframe_preload_cache__') as HTMLDivElement | null;
+  if (!container) {
+    container = document.createElement('div');
+    container.id = '__iframe_preload_cache__';
+    container.setAttribute(
+      'style',
+      'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;visibility:hidden;pointer-events:none;',
+    );
+    document.body.appendChild(container);
+  }
+
+  for (const url of urls) {
+    if (preloadedSet.has(url)) continue;
+    preloadedSet.add(url);
+
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+    iframe.addEventListener('load', () => loadedSet.add(url), { once: true });
+    container.appendChild(iframe);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface Props {
   artifact: Artifact;
   onClose: () => void;
@@ -14,10 +48,12 @@ interface Props {
 // background (universities / institutional sites can be slow). If it loads
 // successfully it fades in over the fallback; if it never loads the link stays.
 function EmbeddablePreview({ identifier }: { identifier: ExternalIdentifier }) {
-  const [embedded, setEmbedded] = useState(false);
+  // Initialise as already-loaded when the background preload already completed.
+  const [embedded, setEmbedded] = useState(() => loadedSet.has(identifier.url));
 
-  // Reset if the identifier changes (different artifact selected).
-  useEffect(() => { setEmbedded(false); }, [identifier.url]);
+  useEffect(() => {
+    setEmbedded(loadedSet.has(identifier.url));
+  }, [identifier.url]);
 
   return (
     <div className="relative w-full h-52 bg-[#251406]">
@@ -41,7 +77,10 @@ function EmbeddablePreview({ identifier }: { identifier: ExternalIdentifier }) {
       {/* iframe loads silently; fades in only on success */}
       <iframe
         src={identifier.url}
-        onLoad={() => setEmbedded(true)}
+        onLoad={() => {
+          loadedSet.add(identifier.url);
+          setEmbedded(true);
+        }}
         loading="lazy"
         sandbox="allow-scripts allow-same-origin allow-popups"
         className={`absolute inset-0 w-full h-full border-0 transition-opacity duration-500 ${
@@ -187,9 +226,6 @@ export function DetailPanel({ artifact, onClose }: Props) {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between text-sm text-[#c8b89a] hover:text-[#daa520] transition-colors group"
                   >
-                    <span className="font-semibold text-[#f4ead5] group-hover:text-[#daa520]">
-                      {id.propertyLabel}
-                    </span>
                     <span className="flex items-center gap-1 text-xs opacity-70 group-hover:opacity-100">
                       {id.value}
                       <svg
