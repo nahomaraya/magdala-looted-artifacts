@@ -39,6 +39,12 @@ export const IDENTIFIER_TEMPLATES: Record<string, { label: string; template: str
 
 export const FALLBACK_QIDS = ['Q1123371', 'Q116693582'];
 
+// Dedup constants ─────────────────────────────────────────────────────────
+export const PROJECT_QID = 'Q124538244';     // WikiProject Looted Heritage
+export const LOOTING_QID = 'Q192623';        // looting (the event class for P793)
+export const MAQDALA_BATTLE_QID = 'Q947667'; // Battle of Magdala (P2348 qualifier)
+export const P_DESCRIBED_AT_URL = 'P973';    // join key linking WD items to post URLs
+
 export const SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
 export const WIKIDATA_REST_BASE = 'https://www.wikidata.org/w/rest.php/wikibase/v1';
 export const WIKIDATA_OAUTH_TOKEN_URL =

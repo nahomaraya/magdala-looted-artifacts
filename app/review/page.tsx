@@ -1,0 +1,47 @@
+import { getReviewArtifacts } from '@/lib/getReviewArtifacts';
+import { batchFetchBasicData } from '@/lib/utils/batchFetchBasicData';
+import { resolveCommonsImage } from '@/lib/utils/resolveCommonsImage';
+import ReviewMap, { type ReviewWikidataHit } from '@/components/ReviewMap';
+
+export const dynamic = 'force-dynamic';
+
+async function buildWikidataHitMap(
+  artifacts: Awaited<ReturnType<typeof getReviewArtifacts>>,
+): Promise<Record<string, ReviewWikidataHit>> {
+  const qids = Array.from(
+    new Set(
+      artifacts
+        .filter((a) => a.dedup.method === 'p973' && a.dedup.qid)
+        .map((a) => a.dedup.qid as string),
+    ),
+  );
+
+  if (qids.length === 0) return {};
+
+  const basicData = await batchFetchBasicData(qids);
+  const entries = await Promise.all(
+    qids.map(async (qid) => {
+      const row = basicData.get(qid);
+      const imageUrl = row?.imageFilename
+        ? await resolveCommonsImage(row.imageFilename)
+        : undefined;
+      return [
+        qid,
+        {
+          qid,
+          label: row?.label ?? qid,
+          imageUrl,
+          wikidataUrl: `https://www.wikidata.org/wiki/${qid}`,
+        },
+      ] as const;
+    }),
+  );
+
+  return Object.fromEntries(entries);
+}
+
+export default async function ReviewPage() {
+  const artifacts = await getReviewArtifacts();
+  const wikidataHits = await buildWikidataHitMap(artifacts);
+  return <ReviewMap artifacts={artifacts} wikidataHits={wikidataHits} />;
+}
