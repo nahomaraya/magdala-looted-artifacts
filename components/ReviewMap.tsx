@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
+import { buildQuickStatementsUrl } from '@/lib/quickstatements';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 
@@ -25,35 +26,6 @@ function getReviewStatus(card: ArtifactCard): ReviewStatus {
   if (card.dedup.method === 'p973' && card.dedup.qid) return 'already';
   if (card.dedup.method === 'fuzzy' && card.dedup.qid) return 'fuzzy';
   return 'new';
-}
-
-function buildDescription(card: ArtifactCard): string {
-  const category = card.primaryCategory?.name ?? 'artifact';
-  const holder = card.holder?.name ?? 'an unknown holder';
-  return `Ethiopian ${category} looted from Maqdala in 1868, now at ${holder}`;
-}
-
-function esc(value: string): string {
-  return value.replace(/"/g, '""').trim();
-}
-
-function buildQuickStatementsUrl(card: ArtifactCard): string {
-  const lines = [
-    'CREATE',
-    `LAST|Len|"${esc(card.title)}"`,
-    `LAST|Den|"${esc(buildDescription(card))}"`,
-  ];
-
-  if (card.primaryCategory?.qid) lines.push(`LAST|P31|${card.primaryCategory.qid}`);
-  if (card.holder?.qid) lines.push(`LAST|P195|${card.holder.qid}`);
-
-  lines.push('LAST|P495|Q115');
-  lines.push('LAST|P5008|Q124538244');
-  lines.push('LAST|P793|Q192623|P585|+1868-00-00T00:00:00Z/9|P2348|Q947667');
-  lines.push(`LAST|P973|"${esc(card.url)}"`);
-
-  const v1 = encodeURIComponent(lines.join('\n'));
-  return `https://quickstatements.toolforge.org/#/v1=${v1}`;
 }
 
 /** Friendly label for a reference URL — recognised museum / archive domains
@@ -119,19 +91,84 @@ function DedupBadge({ card }: { card: ArtifactCard }) {
   );
 }
 
+const UNKNOWN_HOLDER = 'Unknown / Unresolved';
+
+interface MuseumGroup {
+  key: string;            // unique grouping key — usually holder name
+  name: string;           // display name
+  qid: string | null;
+  count: number;
+}
+
 export default function ReviewMap({ artifacts, wikidataHits }: Props) {
   const [selectedWpId, setSelectedWpId] = useState<string | null>(artifacts[0]?.wpId ?? null);
-  const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
+  const [selectedMuseum, setSelectedMuseum] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const museumGroups = useMemo<MuseumGroup[]>(() => {
+    const groups = new Map<string, MuseumGroup>();
+    for (const card of artifacts) {
+      const name = card.holder?.name ?? UNKNOWN_HOLDER;
+      const existing = groups.get(name);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        groups.set(name, { key: name, name, qid: card.holder?.qid ?? null, count: 1 });
+      }
+    }
+    return Array.from(groups.values()).sort((a, b) => b.count - a.count);
+  }, [artifacts]);
+
+  const filteredArtifacts = useMemo(() => {
+    if (!selectedMuseum) return artifacts;
+    return artifacts.filter(
+      (a) => (a.holder?.name ?? UNKNOWN_HOLDER) === selectedMuseum,
+    );
+  }, [artifacts, selectedMuseum]);
+
+  // Coords of the currently-filtered holder, used to fly the map there
+  // when the rail selection changes. Null when "All artifacts" is active.
+  const focusedCoords = useMemo<[number, number] | null>(() => {
+    if (!selectedMuseum) return null;
+    const withCoords = filteredArtifacts.find((a) => a.holder?.coords);
+    return withCoords?.holder?.coords ?? null;
+  }, [selectedMuseum, filteredArtifacts]);
+
+  const selected = filteredArtifacts.find((a) => a.wpId === selectedWpId) ?? null;
   const selectedIndex = useMemo(
-    () => artifacts.findIndex((a) => a.wpId === selectedWpId),
-    [artifacts, selectedWpId],
+    () => filteredArtifacts.findIndex((a) => a.wpId === selectedWpId),
+    [filteredArtifacts, selectedWpId],
   );
 
+  const handleSelectMuseum = (name: string | null) => {
+    setSelectedMuseum(name);
+    const nextList = name
+      ? artifacts.filter((a) => (a.holder?.name ?? UNKNOWN_HOLDER) === name)
+      : artifacts;
+    setSelectedWpId(nextList[0]?.wpId ?? null);
+  };
+
+  const qs = useMemo(
+    () => (selected && !selected.dedup.qid ? buildQuickStatementsUrl(selected) : null),
+    [selected],
+  );
+
+  const handleCopyCommands = async () => {
+    if (!qs) return;
+    try {
+      await navigator.clipboard.writeText(qs.commands);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Failed to copy QuickStatements commands:', err);
+    }
+  };
+
   const selectNextArtifact = () => {
-    if (artifacts.length === 0) return;
-    const currentIndex = selectedIndex >= 0 ? selectedIndex : 0;
-    const nextIndex = (currentIndex + 1) % artifacts.length;
-    setSelectedWpId(artifacts[nextIndex].wpId);
+    if (filteredArtifacts.length === 0) return;
+    const currentIndex = selectedIndex >= 0 ? selectedIndex : -1;
+    const nextIndex = (currentIndex + 1) % filteredArtifacts.length;
+    setSelectedWpId(filteredArtifacts[nextIndex].wpId);
   };
 
   const selectedWikidata =
@@ -143,12 +180,63 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
 
   return (
     <div className="flex h-screen bg-navy">
+      {/* Left rail: holders / museums */}
+      <aside className="w-64 shrink-0 border-r border-navy-border bg-navy overflow-y-auto">
+        <div className="p-4 border-b border-navy-border">
+          <h2 className="font-heading text-sm uppercase tracking-wide text-parchment">Holders</h2>
+          <p className="text-xs text-parchment-dim mt-1">
+            {museumGroups.length} institutions · {artifacts.length} artifacts
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleSelectMuseum(null)}
+          className={`w-full text-left px-4 py-2 text-sm border-b border-navy-border/40 transition-colors ${
+            selectedMuseum === null
+              ? 'bg-blue-500/15 text-blue-200'
+              : 'text-parchment hover:bg-navy-light/60'
+          }`}
+        >
+          <span className="flex items-center justify-between gap-2">
+            <span className="font-medium">All artifacts</span>
+            <span className="text-xs opacity-70">{artifacts.length}</span>
+          </span>
+        </button>
+
+        {museumGroups.map((g) => {
+          const isSelected = selectedMuseum === g.key;
+          return (
+            <button
+              key={g.key}
+              type="button"
+              onClick={() => handleSelectMuseum(g.key)}
+              className={`w-full text-left px-4 py-2 text-sm border-b border-navy-border/40 transition-colors ${
+                isSelected
+                  ? 'bg-blue-500/15 text-blue-200'
+                  : 'text-parchment hover:bg-navy-light/60'
+              }`}
+              title={g.qid ? `${g.name} (${g.qid})` : g.name}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">{g.name}</span>
+                <span className="shrink-0 text-xs opacity-70">{g.count}</span>
+              </div>
+              {g.qid && (
+                <span className="block text-[10px] font-mono text-parchment-dim mt-0.5">{g.qid}</span>
+              )}
+            </button>
+          );
+        })}
+      </aside>
+
       <div className="flex-1 min-w-0 relative">
         <ReviewMapLeaflet
-          artifacts={artifacts}
+          artifacts={filteredArtifacts}
           wikidataHits={wikidataHits}
           selectedWpId={selectedWpId}
           onSelect={setSelectedWpId}
+          focusCoords={focusedCoords}
         />
       </div>
 
@@ -171,7 +259,8 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                 {previewTitle ?? selected.title}
               </h2>
               <p className="text-xs text-parchment-dim mt-1">
-                WP #{selected.wpId} • {selectedIndex + 1} / {artifacts.length}
+                WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}
+                {selectedMuseum && <span className="ml-1 opacity-70">in {selectedMuseum}</span>}
               </p>
             </div>
 
@@ -223,15 +312,44 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                 >
                   View on Wikidata
                 </a>
+              ) : qs?.fits ? (
+                <>
+                  <a
+                    href={qs.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-blue-400/40 bg-blue-500/10 px-3 py-1.5 text-sm text-blue-200 hover:bg-blue-500/20"
+                  >
+                    Open in QuickStatements
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleCopyCommands}
+                    className="rounded border border-parchment-dim/40 bg-navy px-3 py-1.5 text-sm text-parchment-dim hover:border-parchment-dim/70"
+                    title="Copy raw V1 commands to clipboard"
+                  >
+                    {copied ? 'Copied!' : 'Copy commands'}
+                  </button>
+                </>
               ) : (
-                <a
-                  href={buildQuickStatementsUrl(selected)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded border border-blue-400/40 bg-blue-500/10 px-3 py-1.5 text-sm text-blue-200 hover:bg-blue-500/20"
-                >
-                  Open in QuickStatements
-                </a>
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCopyCommands}
+                    className="rounded border border-amber-400/40 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200 hover:bg-amber-500/20"
+                    title={qs ? `URL too long (${qs.byteLength}b); copy & paste manually` : ''}
+                  >
+                    {copied ? 'Copied — paste in QS' : 'Copy commands (URL too long)'}
+                  </button>
+                  <a
+                    href="https://quickstatements.toolforge.org/#/batch"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-parchment-dim/40 bg-navy px-3 py-1.5 text-sm text-parchment-dim hover:border-parchment-dim/70"
+                  >
+                    Open QuickStatements ↗
+                  </a>
+                </>
               )}
             </div>
 

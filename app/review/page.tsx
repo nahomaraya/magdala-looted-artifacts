@@ -41,7 +41,9 @@ async function buildWikidataHitMap(
 }
 
 export default async function ReviewPage() {
-  const artifacts = await getReviewArtifacts();
+  // Dedup intentionally off while no items are being minted. Flip back on
+  // (drop skipDedup, or set to false) once you start running QuickStatements.
+  const artifacts = await getReviewArtifacts({ skipDedup: true });
   const wikidataHits = await buildWikidataHitMap(artifacts);
   return <ReviewMap artifacts={artifacts} wikidataHits={wikidataHits} />;
 }

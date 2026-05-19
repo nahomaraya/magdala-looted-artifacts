@@ -14,6 +14,9 @@ interface Props {
   wikidataHits: Record<string, { label: string }>;
   selectedWpId: string | null;
   onSelect: (wpId: string) => void;
+  /** When set, the map flies to these coordinates instead of fitting bounds
+   *  around Magdala + the selected artifact. Used by the holder rail. */
+  focusCoords?: [number, number] | null;
 }
 
 interface GroupedLocation {
@@ -62,13 +65,24 @@ function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {
 function ReviewMapController({
   artifacts,
   selectedWpId,
+  focusCoords,
 }: {
   artifacts: ArtifactCard[];
   selectedWpId: string | null;
+  focusCoords?: [number, number] | null;
 }) {
   const map = useMap();
+  // Deps need a stable signature, otherwise a new array literal would re-fire
+  // the effect on every parent render.
+  const focusKey = focusCoords ? `${focusCoords[0]},${focusCoords[1]}` : '';
 
   useEffect(() => {
+    // Holder rail just narrowed the view — zoom in on the museum.
+    if (focusCoords) {
+      map.flyTo(focusCoords, 7, { duration: 1 });
+      return;
+    }
+
     if (!selectedWpId) {
       map.flyTo(MAGDALA_COORDS, 3, { duration: 0.8 });
       return;
@@ -79,12 +93,12 @@ function ReviewMapController({
     if (!coords) return;
     const bounds = L.latLngBounds([MAGDALA_COORDS, coords]);
     map.flyToBounds(bounds, { padding: [70, 70], duration: 1 });
-  }, [artifacts, map, selectedWpId]);
+  }, [artifacts, map, selectedWpId, focusKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
 
-export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect }: Props) {
+export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect, focusCoords }: Props) {
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
@@ -103,7 +117,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
         maxZoom={19}
       />
 
-      <ReviewMapController artifacts={artifacts} selectedWpId={selectedWpId} />
+      <ReviewMapController artifacts={artifacts} selectedWpId={selectedWpId} focusCoords={focusCoords} />
 
       <CircleMarker
         center={MAGDALA_COORDS}

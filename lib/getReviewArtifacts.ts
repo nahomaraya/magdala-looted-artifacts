@@ -3,6 +3,7 @@
 import { loadArtifactsCsv, type CsvArtifact } from './utils/loadArtifactsCsv';
 import { loadTagsCsv, normalizeName } from './utils/loadTagsCsv';
 import { loadCategoriesTsv } from './utils/loadCategoriesTsv';
+import { loadMuseumsCsv, type MuseumEntry } from './utils/loadMuseumsCsv';
 import { batchCheckArtifacts, type DedupResult } from './dedup';
 import { INSTITUTION_COORDS, DEFAULT_COORDS } from './constants';
 import type {
@@ -37,11 +38,18 @@ function stripWeakMarker(title: string): string {
 }
 
 /**
- * Substring match against the hand-curated INSTITUTION_COORDS table.
- * For the MVP this is good enough; a future step swaps in SPARQL P625
- * resolution by holder QID for better coverage.
+ * Resolve a holder name to coordinates. Priority:
+ *   1. Museums CSV (`coordiniates` field) — authoritative, hand-set per holder
+ *   2. Substring match against INSTITUTION_COORDS — legacy fallback
+ *   3. DEFAULT_COORDS — last resort
  */
-function lookupCoords(name: string): [number, number] {
+function lookupCoords(
+  name: string,
+  museumsByName: Map<string, MuseumEntry>,
+): [number, number] {
+  const fromMuseum = museumsByName.get(normalizeName(name))?.coords;
+  if (fromMuseum) return fromMuseum;
+
   const lower = name.toLowerCase();
   for (const [key, coords] of Object.entries(INSTITUTION_COORDS)) {
     const k = key.toLowerCase();
@@ -50,7 +58,11 @@ function lookupCoords(name: string): [number, number] {
   return DEFAULT_COORDS;
 }
 
-function buildHolder(rawName: string, tagsByName: Map<string, TagEntry>): ResolvedHolder {
+function buildHolder(
+  rawName: string,
+  tagsByName: Map<string, TagEntry>,
+  museumsByName: Map<string, MuseumEntry>,
+): ResolvedHolder {
   const entry = tagsByName.get(normalizeName(rawName));
   const name = entry?.name ?? rawName;
   const hasQid = !!entry?.qid && entry.source !== 'skip' && entry.source !== 'none';
@@ -59,7 +71,7 @@ function buildHolder(rawName: string, tagsByName: Map<string, TagEntry>): Resolv
     name,
     qid: hasQid ? entry!.qid : null,
     source: entry?.source ?? '',
-    coords: lookupCoords(name),
+    coords: lookupCoords(name, museumsByName),
     verificationStatus: entry?.verificationStatus,
   };
 }
@@ -94,12 +106,13 @@ function buildCard(
   csv: CsvArtifact,
   tagsByName: Map<string, TagEntry>,
   catsByName: Map<string, CategoryEntry>,
+  museumsByName: Map<string, MuseumEntry>,
   dedup: DedupResult,
 ): ArtifactCard {
   const rawTagNames = splitPipe(csv.tag_names);
   const rawCatNames = splitPipe(csv.category_names);
 
-  const allHolders = rawTagNames.map(n => buildHolder(n, tagsByName));
+  const allHolders = rawTagNames.map(n => buildHolder(n, tagsByName, museumsByName));
   const holder = allHolders.find(h => h.qid !== null) ?? null;
 
   const allCategories = rawCatNames.map(n => buildCategory(n, catsByName));
@@ -147,8 +160,16 @@ export interface GetReviewArtifactsOptions {
   tagsFile?: string;
   /** Override the categories TSV path (default: filled file from fill_qids.py). */
   categoriesFile?: string;
+  /** Override the museums CSV path (default: Museums-Grid view.csv). */
+  museumsFile?: string;
   /** Drop the "Features"/"News"/etc. site-organization posts. Default true. */
   filterUnreviewable?: boolean;
+  /**
+   * Skip the SPARQL dedup queries entirely. Useful while you're not yet
+   * minting items - every card comes back with method='none' and the page
+   * doesn't touch WDQS. Default false.
+   */
+  skipDedup?: boolean;
 }
 
 /**
@@ -162,23 +183,39 @@ export interface GetReviewArtifactsOptions {
 export async function getReviewArtifacts(
   opts: GetReviewArtifactsOptions = {},
 ): Promise<ArtifactCard[]> {
-  const { filterUnreviewable = true } = opts;
+  const { filterUnreviewable = true, skipDedup = false } = opts;
 
-  const [artifacts, tagsByName, catsByName] = await Promise.all([
+  const [artifacts, tagsByName, catsByName, museumsByName] = await Promise.all([
     loadArtifactsCsv(opts.artifactsFile),
     loadTagsCsv(opts.tagsFile),
     loadCategoriesTsv(opts.categoriesFile),
+    loadMuseumsCsv(opts.museumsFile),
   ]);
 
-  const dedupMap = await batchCheckArtifacts(
-    artifacts.map(a => ({ url: a.url, title: stripWeakMarker(a.title) })),
-  );
+  // WDQS can rate-limit or be transiently down. We'd rather render the
+  // map with every artifact marked "unknown dedup" than crash the page,
+  // so swallow SPARQL failures and proceed. When skipDedup is true we
+  // don't touch WDQS at all.
+  let dedupMap: Map<string, DedupResult>;
+  if (skipDedup) {
+    dedupMap = new Map();
+  } else {
+    try {
+      dedupMap = await batchCheckArtifacts(
+        artifacts.map(a => ({ url: a.url, title: stripWeakMarker(a.title) })),
+      );
+    } catch (err) {
+      console.error('[getReviewArtifacts] dedup unavailable, rendering without it:', err);
+      dedupMap = new Map();
+    }
+  }
 
   const cards = artifacts.map(a =>
     buildCard(
       a,
       tagsByName,
       catsByName,
+      museumsByName,
       dedupMap.get(a.url) ?? { exists: false, qid: null, method: 'none', confidence: 0 },
     ),
   );

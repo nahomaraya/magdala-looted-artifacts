@@ -39,12 +39,18 @@ import { tokenSortRatio } from './utils/tokenSortRatio';
 
 type Binding = Record<string, { value: string; type: string }>;
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 /**
- * POST-based SPARQL helper. The dedup pipeline can send `VALUES` clauses
- * with hundreds of URLs - too long for a GET. POST is unconditional here
- * because it's safe either way.
+ * POST-based SPARQL helper with retry on 429. WDQS rate-limits anonymous
+ * traffic at ~60 queries/minute per IP, and on a hot page reload the dedup
+ * pipeline can easily blow past that. We honour the `Retry-After` header
+ * when WDQS sends one and fall back to exponential backoff otherwise.
+ *
+ * The dedup pipeline can also send `VALUES` clauses with hundreds of URLs,
+ * which is why this uses POST instead of GET.
  */
-async function sparqlPost(query: string): Promise<Binding[]> {
+async function sparqlPost(query: string, attempt = 0): Promise<Binding[]> {
   const res = await fetch(SPARQL_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -55,6 +61,17 @@ async function sparqlPost(query: string): Promise<Binding[]> {
     body: new URLSearchParams({ query, format: 'json' }),
     cache: 'no-store',
   });
+
+  if (res.status === 429 && attempt < 3) {
+    const headerRetry = Number(res.headers.get('Retry-After'));
+    const waitSeconds = Number.isFinite(headerRetry) && headerRetry > 0
+      ? headerRetry
+      : Math.pow(2, attempt) + Math.random();
+    console.warn(`[dedup] WDQS 429 - retrying in ${waitSeconds.toFixed(1)}s (attempt ${attempt + 1}/3)`);
+    await sleep(waitSeconds * 1000);
+    return sparqlPost(query, attempt + 1);
+  }
+
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`SPARQL ${res.status}: ${body.slice(0, 200)}`);
@@ -73,13 +90,31 @@ function qidFromUri(uri: string): string {
  * Map every URL that's already linked via P973 to the existing Wikidata item.
  * Chunked at 200 per query because WDQS rejects very large VALUES blocks.
  */
-export async function checkP973Batch(urls: string[]): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  const cleaned = urls.filter(Boolean);
-  if (cleaned.length === 0) return out;
+const P973_TTL_MS = 5 * 60 * 1000;
+const CHUNK_DELAY_MS = 600;
+let p973Cache: { key: string; data: Map<string, string>; fetchedAt: number } | null = null;
 
+/** Order-insensitive signature of a URL list, for cache keying. */
+function batchSignature(urls: string[]): string {
+  return urls.length + ':' + [...urls].sort().join('|');
+}
+
+export async function checkP973Batch(urls: string[]): Promise<Map<string, string>> {
+  const cleaned = urls.filter(Boolean);
+  if (cleaned.length === 0) return new Map();
+
+  // Avoid hammering WDQS on back-to-back page renders. The same artifact
+  // list passes the same cache key so the live dedup query only runs once
+  // every P973_TTL_MS.
+  const key = batchSignature(cleaned);
+  if (p973Cache && p973Cache.key === key && Date.now() - p973Cache.fetchedAt < P973_TTL_MS) {
+    return p973Cache.data;
+  }
+
+  const out = new Map<string, string>();
   const CHUNK = 200;
   for (let i = 0; i < cleaned.length; i += CHUNK) {
+    if (i > 0) await sleep(CHUNK_DELAY_MS); // basic politeness between sub-queries
     const chunk = cleaned.slice(i, i + CHUNK);
     const values = chunk.map(u => `<${u}>`).join('\n        ');
     const query = `
@@ -94,6 +129,8 @@ export async function checkP973Batch(urls: string[]): Promise<Map<string, string
       out.set(b.url.value, qidFromUri(b.item.value));
     }
   }
+
+  p973Cache = { key, data: out, fetchedAt: Date.now() };
   return out;
 }
 
