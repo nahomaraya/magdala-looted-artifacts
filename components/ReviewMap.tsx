@@ -152,6 +152,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     () => (selected && !selected.dedup.qid ? buildQuickStatementsUrl(selected) : null),
     [selected],
   );
+  const primarySource = selected?.sourceLinks[0] ?? selected?.url ?? null;
 
   const handleCopyCommands = async () => {
     if (!qs) return;
@@ -162,6 +163,19 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     } catch (err) {
       console.error('Failed to copy QuickStatements commands:', err);
     }
+  };
+
+  const handleApprove = async () => {
+    if (!selected) return;
+    if (!qs) return;
+    if (qs.fits) {
+      window.open(qs.url, '_blank', 'noopener,noreferrer');
+      selectNextArtifact();
+      return;
+    }
+    await handleCopyCommands();
+    window.open('https://quickstatements.toolforge.org/#/batch', '_blank', 'noopener,noreferrer');
+    selectNextArtifact();
   };
 
   const selectNextArtifact = () => {
@@ -175,8 +189,14 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     selected?.dedup.method === 'p973' && selected.dedup.qid
       ? wikidataHits[selected.dedup.qid]
       : null;
-  const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];
+  const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];  
   const previewTitle = selectedWikidata?.label ?? selected?.title;
+  const takenFromLabel = 'Maqdala, Ethiopia (Battle of Magdala, 1868)';
+  const currentLocationLabel = selected?.where ?? selected?.holder?.name ?? 'Unknown';
+  const responsibleLabel =
+    selected?.holder?.name && selected.holder.name !== UNKNOWN_HOLDER
+      ? selected.holder.name
+      : null;
 
   return (
     <div className="flex h-screen bg-navy">
@@ -240,12 +260,12 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         />
       </div>
 
-      <aside className="w-[420px] shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
+      <aside className="w-[680px] shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
         {!selected ? (
           <div className="p-6 text-sm text-parchment-dim">No artifact selected.</div>
         ) : (
-          <div className="p-5 space-y-4">
-            <h1 className="font-heading text-xl text-parchment leading-tight">Review map</h1>
+          <div className="p-6 space-y-4">
+            <h1 className="font-heading text-2xl text-parchment leading-tight">Review map</h1>
             <DedupBadge card={selected} />
 
             {previewImage && previewTitle && (
@@ -254,17 +274,24 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
               </div>
             )}
 
+            <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
+              <p className="text-parchment text-base font-medium">Review steps</p>
+              <p className="mt-2">1. Open the source and confirm it is the same artifact.</p>
+              <p>2. If it matches, click Approve to open QuickStatements.</p>
+              <p>3. If it does not match, click Skip to move on.</p>
+            </div>
+
             <div>
-              <h2 className="font-heading text-lg text-parchment leading-tight">
+              <h2 className="font-heading text-2xl text-parchment leading-tight">
                 {previewTitle ?? selected.title}
               </h2>
-              <p className="text-xs text-parchment-dim mt-1">
+              <p className="text-sm text-parchment-dim mt-1">
                 WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}
                 {selectedMuseum && <span className="ml-1 opacity-70">in {selectedMuseum}</span>}
               </p>
             </div>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-base">
               <p className="text-parchment-dim">
                 <span className="text-parchment">Holder:</span> {selected.holder?.name ?? 'Unresolved'}
                 {selected.holder?.qid ? ` (${selected.holder.qid})` : ''}
@@ -290,16 +317,53 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={selectNextArtifact}
-                className="rounded border border-parchment-dim/40 bg-navy px-3 py-1.5 text-sm text-parchment hover:border-parchment-dim/70"
-              >
-                Next artifact →
-              </button>
+            <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
+              <p className="text-parchment text-base font-medium">Provenance</p>
+              <p className="mt-2">
+                <span className="text-parchment">Taken from:</span> {takenFromLabel}
+              </p>
+              <p>
+                <span className="text-parchment">Current location:</span> {currentLocationLabel}
+              </p>
+              {responsibleLabel && (
+                <p>
+                  <span className="text-parchment">Responsible institution:</span> {responsibleLabel}
+                </p>
+              )}
+            </div>
 
-              {selected.dedup.qid ? (
+            <div className="flex flex-wrap gap-2">
+              {primarySource ? (
+                <a
+                  href={primarySource}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
+                >
+                  View source ↗
+                </a>
+              ) : (
+                <span className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment-dim/60">
+                  No source link available
+                </span>
+              )}
+
+              {!selected.dedup.qid ? (
+                <button
+                  type="button"
+                  onClick={handleApprove}
+                  className="rounded border border-emerald-300/50 bg-emerald-500/15 px-4 py-2 text-base font-medium text-emerald-100 hover:bg-emerald-500/25"
+                  title={
+                    qs?.fits
+                      ? 'Opens QuickStatements for this artifact'
+                      : qs
+                        ? 'Copies commands and opens QuickStatements batch'
+                        : ''
+                  }
+                >
+                  Approve (create QS)
+                </button>
+              ) : (
                 <a
                   href={
                     selected.dedup.method === 'p973'
@@ -308,55 +372,36 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded border border-gray-300/40 bg-gray-500/10 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-500/20"
+                  className="rounded border border-gray-300/40 bg-gray-500/10 px-4 py-2 text-base text-gray-200 hover:bg-gray-500/20"
                 >
                   View on Wikidata
                 </a>
-              ) : qs?.fits ? (
-                <>
-                  <a
-                    href={qs.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded border border-blue-400/40 bg-blue-500/10 px-3 py-1.5 text-sm text-blue-200 hover:bg-blue-500/20"
-                  >
-                    Open in QuickStatements
-                  </a>
-                  <button
-                    type="button"
-                    onClick={handleCopyCommands}
-                    className="rounded border border-parchment-dim/40 bg-navy px-3 py-1.5 text-sm text-parchment-dim hover:border-parchment-dim/70"
-                    title="Copy raw V1 commands to clipboard"
-                  >
-                    {copied ? 'Copied!' : 'Copy commands'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCopyCommands}
-                    className="rounded border border-amber-400/40 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200 hover:bg-amber-500/20"
-                    title={qs ? `URL too long (${qs.byteLength}b); copy & paste manually` : ''}
-                  >
-                    {copied ? 'Copied — paste in QS' : 'Copy commands (URL too long)'}
-                  </button>
-                  <a
-                    href="https://quickstatements.toolforge.org/#/batch"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded border border-parchment-dim/40 bg-navy px-3 py-1.5 text-sm text-parchment-dim hover:border-parchment-dim/70"
-                  >
-                    Open QuickStatements ↗
-                  </a>
-                </>
+              )}
+
+              <button
+                type="button"
+                onClick={selectNextArtifact}
+                className="rounded border border-parchment-dim/40 bg-navy px-4 py-2 text-base text-parchment hover:border-parchment-dim/70"
+              >
+                Skip (next) →
+              </button>
+
+              {!qs?.fits && qs && !selected.dedup.qid && (
+                <button
+                  type="button"
+                  onClick={handleCopyCommands}
+                  className="rounded border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-base text-amber-200 hover:bg-amber-500/20"
+                  title={`URL too long (${qs.byteLength}b); copy & paste manually`}
+                >
+                  {copied ? 'Copied — paste in QS' : 'Copy QS commands'}
+                </button>
               )}
             </div>
 
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-base">
               {selected.sourceLinks.length > 0 ? (
                 <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-wide text-parchment-dim">
+                  <p className="text-sm uppercase tracking-wide text-parchment-dim">
                     References ({selected.sourceLinks.length})
                   </p>
                   {selected.sourceLinks.map((link) => (
@@ -373,7 +418,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs italic text-parchment-dim">
+                <p className="text-sm italic text-parchment-dim">
                   No external references on file for this artifact.
                 </p>
               )}
@@ -382,7 +427,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                 href={selected.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex text-xs text-parchment-dim hover:text-[#daa520]"
+                className="inline-flex text-sm text-parchment-dim hover:text-[#daa520]"
                 title={selected.url}
               >
                 Source post on theprinceandtheplunder.com ↗
