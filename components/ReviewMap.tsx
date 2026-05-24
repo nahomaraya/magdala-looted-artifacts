@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
-import { buildQuickStatementsUrl } from '@/lib/quickstatements';
+import { buildMarkAsReturnedUrl } from '@/lib/quickstatements';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 
@@ -103,7 +103,6 @@ interface MuseumGroup {
 export default function ReviewMap({ artifacts, wikidataHits }: Props) {
   const [selectedWpId, setSelectedWpId] = useState<string | null>(artifacts[0]?.wpId ?? null);
   const [selectedMuseum, setSelectedMuseum] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const museumGroups = useMemo<MuseumGroup[]>(() => {
     const groups = new Map<string, MuseumGroup>();
@@ -148,34 +147,56 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     setSelectedWpId(nextList[0]?.wpId ?? null);
   };
 
-  const qs = useMemo(
-    () => (selected && !selected.dedup.qid ? buildQuickStatementsUrl(selected) : null),
+  const returnUrl = useMemo(
+    () => (selected ? buildMarkAsReturnedUrl(selected) : null),
     [selected],
   );
+  // Session-local set of wpIds the reviewer just marked as returned. We OR
+  // it with the artifact's persisted `returned` field so the badge updates
+  // instantly without waiting for an Airtable re-fetch.
+  const [returnedWpIds, setReturnedWpIds] = useState<Set<string>>(new Set());
+  const isReturned = selected
+    ? Boolean(selected.returned) || returnedWpIds.has(selected.wpId)
+    : false;
   const primarySource = selected?.sourceLinks[0] ?? selected?.url ?? null;
 
-  const handleCopyCommands = async () => {
-    if (!qs) return;
-    try {
-      await navigator.clipboard.writeText(qs.commands);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error('Failed to copy QuickStatements commands:', err);
-    }
-  };
-
-  const handleApprove = async () => {
+  const handleMarkReturned = async () => {
     if (!selected) return;
-    if (!qs) return;
-    if (qs.fits) {
-      window.open(qs.url, '_blank', 'noopener,noreferrer');
-      selectNextArtifact();
-      return;
+    const hasQid = Boolean(selected.dedup.qid && returnUrl);
+    if (!window.confirm(
+      `Mark "${selected.title}" as returned?\n\n` +
+      `This will:\n` +
+      `  • Record the return in Airtable\n` +
+      (hasQid
+        ? `  • Open QuickStatements with property changes for ${selected.dedup.qid}`
+        : `  • (No Wikidata QID on file — update Wikidata manually after)`),
+    )) return;
+
+    // Optimistically mark in local UI - server roundtrip below may fail.
+    setReturnedWpIds((prev) => new Set(prev).add(selected.wpId));
+
+    try {
+      const res = await fetch(`/api/artifacts/returned`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wpId: selected.wpId,
+          qid: selected.dedup.qid,
+          airtableId: selected.airtableId,
+          returnedOn: new Date().toISOString().slice(0, 10),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        console.warn('[mark-returned] Airtable write failed:', res.status, body);
+      }
+    } catch (err) {
+      console.warn('[mark-returned] Airtable request error:', err);
     }
-    await handleCopyCommands();
-    window.open('https://quickstatements.toolforge.org/#/batch', '_blank', 'noopener,noreferrer');
-    selectNextArtifact();
+
+    if (returnUrl) {
+      window.open(returnUrl.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const selectNextArtifact = () => {
@@ -348,34 +369,45 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                 </span>
               )}
 
-              {!selected.dedup.qid ? (
+              {/* Wikidata link: direct when the QID is known, search by post URL otherwise. */}
+              <a
+                href={
+                  selected.dedup.qid
+                    ? `https://www.wikidata.org/wiki/${selected.dedup.qid}`
+                    : `https://www.wikidata.org/w/index.php?search=${encodeURIComponent(selected.url)}&go=Go`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded border border-gray-300/40 bg-gray-500/10 px-4 py-2 text-base text-gray-200 hover:bg-gray-500/20"
+                title={
+                  selected.dedup.qid
+                    ? `Open ${selected.dedup.qid} on Wikidata`
+                    : 'Search Wikidata by the post URL — no QID on file for this row yet'
+                }
+              >
+                View / edit on Wikidata ↗
+              </a>
+
+              {isReturned ? (
+                <span
+                  className="rounded border border-emerald-300/50 bg-emerald-500/15 px-4 py-2 text-base font-medium text-emerald-100"
+                  title="Recorded as returned"
+                >
+                  ✓ Returned
+                </span>
+              ) : (
                 <button
                   type="button"
-                  onClick={handleApprove}
-                  className="rounded border border-emerald-300/50 bg-emerald-500/15 px-4 py-2 text-base font-medium text-emerald-100 hover:bg-emerald-500/25"
+                  onClick={handleMarkReturned}
+                  className="rounded border border-amber-300/60 bg-amber-500/15 px-4 py-2 text-base font-medium text-amber-100 hover:bg-amber-500/25"
                   title={
-                    qs?.fits
-                      ? 'Opens QuickStatements for this artifact'
-                      : qs
-                        ? 'Copies commands and opens QuickStatements batch'
-                        : ''
+                    selected.dedup.qid
+                      ? `Mark returned in Airtable and open QS to end-time the current holder`
+                      : `Mark returned in Airtable (Wikidata side update manually since no QID on file)`
                   }
                 >
-                  Approve (create QS)
+                  Mark as returned
                 </button>
-              ) : (
-                <a
-                  href={
-                    selected.dedup.method === 'p973'
-                      ? selectedWikidata?.wikidataUrl ?? `https://www.wikidata.org/wiki/${selected.dedup.qid}`
-                      : `https://www.wikidata.org/wiki/${selected.dedup.qid}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded border border-gray-300/40 bg-gray-500/10 px-4 py-2 text-base text-gray-200 hover:bg-gray-500/20"
-                >
-                  View on Wikidata
-                </a>
               )}
 
               <button
@@ -386,16 +418,6 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                 Skip (next) →
               </button>
 
-              {!qs?.fits && qs && !selected.dedup.qid && (
-                <button
-                  type="button"
-                  onClick={handleCopyCommands}
-                  className="rounded border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-base text-amber-200 hover:bg-amber-500/20"
-                  title={`URL too long (${qs.byteLength}b); copy & paste manually`}
-                >
-                  {copied ? 'Copied — paste in QS' : 'Copy QS commands'}
-                </button>
-              )}
             </div>
 
             <div className="space-y-3 text-base">

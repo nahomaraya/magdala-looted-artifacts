@@ -1,9 +1,12 @@
 // Server-only — joins the artifacts CSV, the tag/category mappings, and the
 // dedup result into one fully-resolved ArtifactCard[] for the review map.
-import { loadArtifactsCsv, type CsvArtifact } from './utils/loadArtifactsCsv';
-import { loadTagsCsv, normalizeName } from './utils/loadTagsCsv';
-import { loadCategoriesTsv } from './utils/loadCategoriesTsv';
-import { loadMuseumsCsv, type MuseumEntry } from './utils/loadMuseumsCsv';
+import { type CsvArtifact } from './utils/loadArtifactsCsv';
+import { loadArtifactsFromAirtable, type AirtableArtifact } from './utils/loadArtifactsFromAirtable';
+import { normalizeName } from './utils/loadTagsCsv';
+import { loadTagsFromAirtable } from './utils/loadTagsFromAirtable';
+import { loadCategoriesFromAirtable } from './utils/loadCategoriesFromAirtable';
+import { loadMuseumsFromAirtable } from './utils/loadMuseumsFromAirtable';
+import { type MuseumEntry } from './utils/loadMuseumsCsv';
 import { batchCheckArtifacts, type DedupResult } from './dedup';
 import { INSTITUTION_COORDS, DEFAULT_COORDS } from './constants';
 import type {
@@ -103,12 +106,14 @@ function detectMaqdalaConfidence(rawNames: string[]): MaqdalaConfidence | null {
 }
 
 function buildCard(
-  csv: CsvArtifact,
+  csv: CsvArtifact | AirtableArtifact,
   tagsByName: Map<string, TagEntry>,
   catsByName: Map<string, CategoryEntry>,
   museumsByName: Map<string, MuseumEntry>,
   dedup: DedupResult,
 ): ArtifactCard {
+  // Airtable-only extras when present
+  const air = csv as Partial<AirtableArtifact>;
   const rawTagNames = splitPipe(csv.tag_names);
   const rawCatNames = splitPipe(csv.category_names);
 
@@ -127,6 +132,7 @@ function buildCard(
 
   return {
     wpId: csv.wp_id,
+    airtableId: air.airtableId,
     slug: csv.slug,
     url: csv.url,
     title: stripWeakMarker(csv.title),
@@ -136,6 +142,8 @@ function buildCard(
     imageUrls:   splitPipe(csv.image_urls),
     sourceLinks: splitPipe(csv.source_links),
     datePublished: csv.date_published || undefined,
+    returned:     air.returned,
+    returnedDate: air.returnedDate,
     holder,
     allHolders,
     primaryCategory,
@@ -154,14 +162,6 @@ function buildCard(
 }
 
 export interface GetReviewArtifactsOptions {
-  /** Override the artifacts CSV path. */
-  artifactsFile?: string;
-  /** Override the tags CSV path (default: verified Airtable export). */
-  tagsFile?: string;
-  /** Override the categories TSV path (default: filled file from fill_qids.py). */
-  categoriesFile?: string;
-  /** Override the museums CSV path (default: Museums-Grid view.csv). */
-  museumsFile?: string;
   /** Drop the "Features"/"News"/etc. site-organization posts. Default true. */
   filterUnreviewable?: boolean;
   /**
@@ -186,10 +186,10 @@ export async function getReviewArtifacts(
   const { filterUnreviewable = true, skipDedup = false } = opts;
 
   const [artifacts, tagsByName, catsByName, museumsByName] = await Promise.all([
-    loadArtifactsCsv(opts.artifactsFile),
-    loadTagsCsv(opts.tagsFile),
-    loadCategoriesTsv(opts.categoriesFile),
-    loadMuseumsCsv(opts.museumsFile),
+    loadArtifactsFromAirtable(),
+    loadTagsFromAirtable(),
+    loadCategoriesFromAirtable(),
+    loadMuseumsFromAirtable(),
   ]);
 
   // WDQS can rate-limit or be transiently down. We'd rather render the
@@ -210,15 +210,17 @@ export async function getReviewArtifacts(
     }
   }
 
-  const cards = artifacts.map(a =>
-    buildCard(
-      a,
-      tagsByName,
-      catsByName,
-      museumsByName,
-      dedupMap.get(a.url) ?? { exists: false, qid: null, method: 'none', confidence: 0 },
-    ),
-  );
+  const cards = artifacts.map(a => {
+    // Prefer a manually-set Airtable qid over the SPARQL dedup result so
+    // the UI always treats the artifact as "on Wikidata" once the user has
+    // pasted a Q-id into the row. Falls back to dedup output otherwise.
+    const airQid = (a as Partial<AirtableArtifact>).qid;
+    const base = dedupMap.get(a.url) ?? { exists: false, qid: null, method: 'none' as const, confidence: 0 };
+    const merged: DedupResult = airQid
+      ? { exists: true, qid: airQid, method: 'p973', confidence: 100 }
+      : base;
+    return buildCard(a, tagsByName, catsByName, museumsByName, merged);
+  });
 
   return filterUnreviewable ? cards.filter(c => c.isReviewable) : cards;
 }

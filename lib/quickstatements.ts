@@ -32,6 +32,12 @@ const ETHIOPIA_QID = 'Q115';
 const DISPUTED_CLAIM_QID = 'Q18912752';
 const P_NATURE_OF_STATEMENT = 'P5102';
 
+/** Default current holder used by `buildMarkAsReturnedUrl`. National Museum
+ *  of Ethiopia, Addis Ababa - the most common destination for restituted
+ *  Maqdala items. Override in the UI when a different institution received
+ *  the artifact. */
+export const DEFAULT_RETURNED_HOLDER_QID = 'Q2652168';
+
 /** Set once the Maqdala plunder collection item exists on Wikidata. */
 const MAQDALA_COLLECTION_QID: string | null = null;
 
@@ -150,6 +156,56 @@ export interface QuickStatementsResult {
 
 export function buildQuickStatementsUrl(card: ArtifactCard): QuickStatementsResult {
   const commands = buildQuickStatementsCommands(card);
+  const url = QS_BASE + encodeURIComponent(commands);
+  const byteLength = url.length;
+  return { url, commands, byteLength, fits: byteLength <= URL_LIMIT_BYTES };
+}
+
+// ─── Restitution flow ─────────────────────────────────────────────────────
+
+export interface MarkAsReturnedOptions {
+  /** New current holder, default National Museum of Ethiopia. */
+  newHolderQid?: string;
+  /** ISO date of the restitution; defaults to today (UTC). */
+  returnedOn?: string;
+}
+
+/**
+ * Generate a QS V1 batch that records a restitution on an EXISTING Wikidata
+ * item:
+ *   1. Adds `P582 end-time` to the current holder's P195 statement, so the
+ *      historical record preserves who held the artifact and until when.
+ *   2. Adds a new P195 statement for the receiving Ethiopian institution.
+ *
+ * Returns null when the artifact has no QID - the caller should still
+ * record the return in Airtable in that case and ask the reviewer to
+ * apply the Wikidata-side edits manually.
+ */
+export function buildMarkAsReturnedUrl(
+  card: ArtifactCard,
+  opts: MarkAsReturnedOptions = {},
+): QuickStatementsResult | null {
+  const qid = card.dedup.qid;
+  if (!qid) return null;
+
+  const newHolder = opts.newHolderQid ?? DEFAULT_RETURNED_HOLDER_QID;
+  const returnedOn = opts.returnedOn
+    ? `+${opts.returnedOn}T00:00:00Z/11`
+    : todayWdDate();
+  const refTail = buildReferenceTail(card.url, card.sourceLinks);
+  const lines: string[] = [];
+
+  // 1) End-time the prior holder (only if we know who it was). QS will
+  //    add the P582 qualifier to the existing matching P195 statement
+  //    instead of creating a duplicate.
+  if (card.holder?.qid) {
+    lines.push(`${qid}|P195|${card.holder.qid}|P582|${returnedOn}`);
+  }
+
+  // 2) Add the new current holder.
+  lines.push(`${qid}|P195|${newHolder}${refTail}`);
+
+  const commands = lines.join('\n');
   const url = QS_BASE + encodeURIComponent(commands);
   const byteLength = url.length;
   return { url, commands, byteLength, fits: byteLength <= URL_LIMIT_BYTES };

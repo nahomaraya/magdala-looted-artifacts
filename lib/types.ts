@@ -116,8 +116,10 @@ export interface DedupResultLite {
 
 /** The fully joined data shape rendered on the map and review panel. */
 export interface ArtifactCard {
-  // raw CSV
+  // raw CSV / Airtable
   wpId: string;
+  /** Airtable record id, when sourced from Airtable. Empty otherwise. */
+  airtableId?: string;
   slug: string;
   url: string;
   title: string;
@@ -127,6 +129,9 @@ export interface ArtifactCard {
   imageUrls: string[];
   sourceLinks: string[];
   datePublished?: string;
+  /** True when the artifact has been recorded as returned to Ethiopia. */
+  returned?: boolean;
+  returnedDate?: string;
 
   // resolved joins
   holder: ResolvedHolder | null;       // primary holder for the map pin
