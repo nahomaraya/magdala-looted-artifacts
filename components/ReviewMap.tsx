@@ -295,12 +295,12 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
               </div>
             )}
 
-            <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
+            {/* <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
               <p className="text-parchment text-base font-medium">Review steps</p>
               <p className="mt-2">1. Open the source and confirm it is the same artifact.</p>
               <p>2. If it matches, click Approve to open QuickStatements.</p>
               <p>3. If it does not match, click Skip to move on.</p>
-            </div>
+            </div> */}
 
             <div>
               <h2 className="font-heading text-2xl text-parchment leading-tight">
