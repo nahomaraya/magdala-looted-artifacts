@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
-import { buildMarkAsReturnedUrl } from '@/lib/quickstatements';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 
@@ -77,18 +76,18 @@ function DedupBadge({ card }: { card: ArtifactCard }) {
       </span>
     );
   }
-  if (status === 'fuzzy' && card.dedup.qid) {
-    return (
-      <span className="inline-flex items-center rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
-        fuzzy match needs audit: {card.dedup.qid}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center rounded border border-blue-400/40 bg-blue-500/10 px-2 py-1 text-xs text-blue-300">
-      not yet in Wikidata
-    </span>
-  );
+  // if (status === 'fuzzy' && card.dedup.qid) {
+  //   return (
+  //     <span className="inline-flex items-center rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+  //       fuzzy match needs audit: {card.dedup.qid}
+  //     </span>
+  //   );
+  // }
+  // return (
+  //   <span className="inline-flex items-center rounded border border-blue-400/40 bg-blue-500/10 px-2 py-1 text-xs text-blue-300">
+  //     not yet in Wikidata
+  //   </span>
+  // );
 }
 
 const UNKNOWN_HOLDER = 'Unknown / Unresolved';
@@ -146,71 +145,13 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
       : artifacts;
     setSelectedWpId(nextList[0]?.wpId ?? null);
   };
-
-  const returnUrl = useMemo(
-    () => (selected ? buildMarkAsReturnedUrl(selected) : null),
-    [selected],
-  );
-  // Session-local set of wpIds the reviewer just marked as returned. We OR
-  // it with the artifact's persisted `returned` field so the badge updates
-  // instantly without waiting for an Airtable re-fetch.
-  const [returnedWpIds, setReturnedWpIds] = useState<Set<string>>(new Set());
-  const isReturned = selected
-    ? Boolean(selected.returned) || returnedWpIds.has(selected.wpId)
-    : false;
   const primarySource = selected?.sourceLinks[0] ?? selected?.url ?? null;
-
-  const handleMarkReturned = async () => {
-    if (!selected) return;
-    const hasQid = Boolean(selected.dedup.qid && returnUrl);
-    if (!window.confirm(
-      `Mark "${selected.title}" as returned?\n\n` +
-      `This will:\n` +
-      `  • Record the return in Airtable\n` +
-      (hasQid
-        ? `  • Open QuickStatements with property changes for ${selected.dedup.qid}`
-        : `  • (No Wikidata QID on file — update Wikidata manually after)`),
-    )) return;
-
-    // Optimistically mark in local UI - server roundtrip below may fail.
-    setReturnedWpIds((prev) => new Set(prev).add(selected.wpId));
-
-    try {
-      const res = await fetch(`/api/artifacts/returned`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wpId: selected.wpId,
-          qid: selected.dedup.qid,
-          airtableId: selected.airtableId,
-          returnedOn: new Date().toISOString().slice(0, 10),
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        console.warn('[mark-returned] Airtable write failed:', res.status, body);
-      }
-    } catch (err) {
-      console.warn('[mark-returned] Airtable request error:', err);
-    }
-
-    if (returnUrl) {
-      window.open(returnUrl.url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const selectNextArtifact = () => {
-    if (filteredArtifacts.length === 0) return;
-    const currentIndex = selectedIndex >= 0 ? selectedIndex : -1;
-    const nextIndex = (currentIndex + 1) % filteredArtifacts.length;
-    setSelectedWpId(filteredArtifacts[nextIndex].wpId);
-  };
 
   const selectedWikidata =
     selected?.dedup.method === 'p973' && selected.dedup.qid
       ? wikidataHits[selected.dedup.qid]
       : null;
-  const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];  
+  const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];
   const previewTitle = selectedWikidata?.label ?? selected?.title;
   const takenFromLabel = 'Maqdala, Ethiopia (Battle of Magdala, 1868)';
   const currentLocationLabel = selected?.where ?? selected?.holder?.name ?? 'Unknown';
@@ -281,77 +222,32 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         />
       </div>
 
-      <aside className="w-[680px] shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
+      <aside className="w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
         {!selected ? (
-          <div className="p-6 text-sm text-parchment-dim">No artifact selected.</div>
+          <div className="p-6 text-base text-parchment-dim">No artifact selected.</div>
         ) : (
-          <div className="p-6 space-y-4">
-            <h1 className="font-heading text-2xl text-parchment leading-tight">Review map</h1>
-            <DedupBadge card={selected} />
-
-            {previewImage && previewTitle && (
-              <div className="relative h-52 rounded border border-navy-border overflow-hidden bg-navy">
-                <Image src={previewImage} alt={previewTitle} fill className="object-contain" unoptimized />
-              </div>
-            )}
-
-            {/* <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
-              <p className="text-parchment text-base font-medium">Review steps</p>
-              <p className="mt-2">1. Open the source and confirm it is the same artifact.</p>
-              <p>2. If it matches, click Approve to open QuickStatements.</p>
-              <p>3. If it does not match, click Skip to move on.</p>
-            </div> */}
-
-            <div>
-              <h2 className="font-heading text-2xl text-parchment leading-tight">
+          <div className="p-6 xl:p-8 space-y-6">
+            <div className="rounded border border-navy-border/70 bg-navy/70 px-5 py-5 space-y-3">
+              <p className="text-sm uppercase tracking-[0.2em] text-parchment-dim">Artifact title</p>
+              <h1 className="font-heading text-4xl text-parchment leading-tight">
                 {previewTitle ?? selected.title}
-              </h2>
-              <p className="text-sm text-parchment-dim mt-1">
+              </h1>
+              <p className="text-base text-parchment-dim">
                 WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}
                 {selectedMuseum && <span className="ml-1 opacity-70">in {selectedMuseum}</span>}
               </p>
             </div>
 
-            <div className="space-y-2 text-base">
-              <p className="text-parchment-dim">
-                <span className="text-parchment">Holder:</span> {selected.holder?.name ?? 'Unresolved'}
-                {selected.holder?.qid ? ` (${selected.holder.qid})` : ''}
-              </p>
-              <p className="text-parchment-dim">
-                <span className="text-parchment">Primary category:</span>{' '}
-                {selected.primaryCategory?.name ?? 'Unresolved'}
-                {selected.primaryCategory?.qid ? ` (${selected.primaryCategory.qid})` : ''}
-              </p>
-              {selected.maqdalaConfidence && (
-                <p className="text-parchment-dim">
-                  <span className="text-parchment">Maqdala confidence:</span> {selected.maqdalaConfidence}
-                </p>
-              )}
+            {/* <div className="flex items-center justify-between gap-3">
+              <h2 className="font-heading text-2xl text-parchment leading-tight">Review map</h2>
+              <DedupBadge card={selected} />
+            </div> */}
 
-              <p className="text-parchment-dim">
-                <span className="text-parchment">Categories:</span>{' '}
-                {selected.allCategories.length > 0
-                  ? selected.allCategories
-                      .map((c) => (c.qid ? `${c.name} (${c.qid})` : c.name))
-                      .join(', ')
-                  : 'None'}
-              </p>
-            </div>
-
-            <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-3 text-sm text-parchment-dim">
-              <p className="text-parchment text-base font-medium">Provenance</p>
-              <p className="mt-2">
-                <span className="text-parchment">Taken from:</span> {takenFromLabel}
-              </p>
-              <p>
-                <span className="text-parchment">Current location:</span> {currentLocationLabel}
-              </p>
-              {responsibleLabel && (
-                <p>
-                  <span className="text-parchment">Responsible institution:</span> {responsibleLabel}
-                </p>
-              )}
-            </div>
+            {previewImage && previewTitle && (
+              <div className="relative h-64 rounded border border-navy-border overflow-hidden bg-navy">
+                <Image src={previewImage} alt={previewTitle} fill className="object-contain" unoptimized />
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               {primarySource ? (
@@ -361,99 +257,106 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                   rel="noopener noreferrer"
                   className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
                 >
-                  View source ↗
+                  Open source URL ↗
                 </a>
               ) : (
                 <span className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment-dim/60">
-                  No source link available
+                  No source URL available
                 </span>
               )}
-
-              {/* Wikidata link: direct when the QID is known, search by post URL otherwise. */}
-              <a
-                href={
-                  selected.dedup.qid
-                    ? `https://www.wikidata.org/wiki/${selected.dedup.qid}`
-                    : `https://www.wikidata.org/w/index.php?search=${encodeURIComponent(selected.url)}&go=Go`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded border border-gray-300/40 bg-gray-500/10 px-4 py-2 text-base text-gray-200 hover:bg-gray-500/20"
-                title={
-                  selected.dedup.qid
-                    ? `Open ${selected.dedup.qid} on Wikidata`
-                    : 'Search Wikidata by the post URL — no QID on file for this row yet'
-                }
-              >
-                View / edit on Wikidata ↗
-              </a>
-
-              {isReturned ? (
-                <span
-                  className="rounded border border-emerald-300/50 bg-emerald-500/15 px-4 py-2 text-base font-medium text-emerald-100"
-                  title="Recorded as returned"
-                >
-                  ✓ Returned
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleMarkReturned}
-                  className="rounded border border-amber-300/60 bg-amber-500/15 px-4 py-2 text-base font-medium text-amber-100 hover:bg-amber-500/25"
-                  title={
-                    selected.dedup.qid
-                      ? `Mark returned in Airtable and open QS to end-time the current holder`
-                      : `Mark returned in Airtable (Wikidata side update manually since no QID on file)`
-                  }
-                >
-                  Mark as returned
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={selectNextArtifact}
-                className="rounded border border-parchment-dim/40 bg-navy px-4 py-2 text-base text-parchment hover:border-parchment-dim/70"
-              >
-                Skip (next) →
-              </button>
-
             </div>
 
-            <div className="space-y-3 text-base">
-              {selected.sourceLinks.length > 0 ? (
-                <div className="space-y-1">
-                  <p className="text-sm uppercase tracking-wide text-parchment-dim">
-                    References ({selected.sourceLinks.length})
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+              <div className="space-y-4">
+                <div className="grid gap-3 text-base sm:grid-cols-2">
+                  <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim">
+                    <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Holder</span>
+                    <span className="mt-1 block text-parchment">
+                      {selected.holder?.name ?? 'Unresolved'}
+                      {selected.holder?.qid ? ` (${selected.holder.qid})` : ''}
+                    </span>
                   </p>
-                  {selected.sourceLinks.map((link) => (
-                    <a
-                      key={link}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block truncate text-parchment hover:text-[#daa520]"
-                      title={link}
-                    >
-                      {labelForSourceUrl(link)} <span className="opacity-50">↗</span>
-                    </a>
-                  ))}
+                  <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim">
+                    <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Primary category</span>
+                    <span className="mt-1 block text-parchment">
+                      {selected.primaryCategory?.name ?? 'Unresolved'}
+                      {selected.primaryCategory?.qid ? ` (${selected.primaryCategory.qid})` : ''}
+                    </span>
+                  </p>
+                  {selected.maqdalaConfidence && (
+                    <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim">
+                      <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Maqdala confidence</span>
+                      <span className="mt-1 block text-parchment">{selected.maqdalaConfidence}</span>
+                    </p>
+                  )}
+                  <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim sm:col-span-2">
+                    <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Categories</span>
+                    <span className="mt-1 block text-parchment">
+                      {selected.allCategories.length > 0
+                        ? selected.allCategories
+                            .map((c) => (c.qid ? `${c.name} (${c.qid})` : c.name))
+                            .join(', ')
+                        : 'None'}
+                    </span>
+                  </p>
                 </div>
-              ) : (
-                <p className="text-sm italic text-parchment-dim">
-                  No external references on file for this artifact.
-                </p>
-              )}
+              </div>
 
-              <a
-                href={selected.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex text-sm text-parchment-dim hover:text-[#daa520]"
-                title={selected.url}
-              >
-                Source post on theprinceandtheplunder.com ↗
-              </a>
+              <div className="space-y-4">
+                <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-4 text-base text-parchment-dim">
+                  <p className="text-parchment text-lg font-medium">Provenance</p>
+                  <div className="mt-3 space-y-2">
+                    <p>
+                      <span className="text-parchment">Taken from:</span> {takenFromLabel}
+                    </p>
+                    <p>
+                      <span className="text-parchment">Current location:</span> {currentLocationLabel}
+                    </p>
+                    {responsibleLabel && (
+                      <p>
+                        <span className="text-parchment">Responsible institution:</span> {responsibleLabel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded border border-navy-border/70 bg-navy/60 px-4 py-4 space-y-3">
+                  <p className="text-lg font-medium text-parchment">References</p>
+                  {selected.sourceLinks.length > 0 ? (
+                    <div className="space-y-2">
+                      {selected.sourceLinks.map((link) => (
+                        <a
+                          key={link}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded border border-navy-border/50 bg-navy/30 px-3 py-2 text-base text-parchment hover:border-[#daa520]/50 hover:text-[#daa520]"
+                          title={link}
+                        >
+                          <span className="block text-sm uppercase tracking-wide text-parchment-dim">
+                            {labelForSourceUrl(link)}
+                          </span>
+                          <span className="block truncate">{link}</span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-base italic text-parchment-dim">
+                      No external references on file for this artifact.
+                    </p>
+                  )}
+
+                  <a
+                    href={selected.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex text-sm text-parchment-dim hover:text-[#daa520]"
+                    title={selected.url}
+                  >
+                    Source post on theprinceandtheplunder.com ↗
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         )}
