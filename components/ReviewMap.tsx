@@ -102,6 +102,8 @@ interface MuseumGroup {
 export default function ReviewMap({ artifacts, wikidataHits }: Props) {
   const [selectedWpId, setSelectedWpId] = useState<string | null>(artifacts[0]?.wpId ?? null);
   const [selectedMuseum, setSelectedMuseum] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
 
   const museumGroups = useMemo<MuseumGroup[]>(() => {
     const groups = new Map<string, MuseumGroup>();
@@ -145,6 +147,23 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
       : artifacts;
     setSelectedWpId(nextList[0]?.wpId ?? null);
   };
+
+  const handleNextArtifact = () => {
+    if (filteredArtifacts.length === 0) return;
+    const nextIndex = selectedIndex < 0 ? 0 : (selectedIndex + 1) % filteredArtifacts.length;
+    setSelectedWpId(filteredArtifacts[nextIndex]?.wpId ?? null);
+    setMobileDetailsOpen(true);
+    setMobileMenuOpen(false);
+  };
+
+  const handlePreviousArtifact = () => {
+    if (filteredArtifacts.length === 0) return;
+    const previousIndex =
+      selectedIndex < 0 ? 0 : (selectedIndex - 1 + filteredArtifacts.length) % filteredArtifacts.length;
+    setSelectedWpId(filteredArtifacts[previousIndex]?.wpId ?? null);
+    setMobileDetailsOpen(true);
+    setMobileMenuOpen(false);
+  };
   const primarySource = selected?.sourceLinks[0] ?? selected?.url ?? null;
 
   const selectedWikidata =
@@ -161,9 +180,9 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
       : null;
 
   return (
-    <div className="flex h-screen bg-navy">
+    <div className="flex h-screen bg-navy flex-col md:flex-row">
       {/* Left rail: holders / museums */}
-      <aside className="w-64 shrink-0 border-r border-navy-border bg-navy overflow-y-auto">
+      <aside className="hidden md:block w-64 shrink-0 border-r border-navy-border bg-navy overflow-y-auto">
         <div className="p-4 border-b border-navy-border">
           <h2 className="font-heading text-sm uppercase tracking-wide text-parchment">Holders</h2>
           <p className="text-xs text-parchment-dim mt-1">
@@ -212,6 +231,171 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         })}
       </aside>
 
+      {/* Mobile compact header: hamburger, title, view details, next artifact */}
+      <div className="md:hidden w-full border-b border-navy-border bg-navy-light/80 p-3 flex items-center gap-3">
+        <button
+          aria-label="Open museums"
+          onClick={() => setMobileMenuOpen((s) => !s)}
+          className="rounded px-2 py-1 text-parchment-dim hover:bg-navy/50"
+        >
+          <span className="text-2xl leading-none">≡</span>
+        </button>
+
+        <h1 className="font-heading text-lg text-parchment truncate flex-1">
+          {previewTitle ?? selected?.title ?? 'No artifact selected.'}
+        </h1>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMobileDetailsOpen(true)}
+            className="rounded border border-parchment-dim/30 bg-navy px-3 py-1 text-sm text-parchment hover:bg-navy/60"
+          >
+            View details
+          </button>
+          <button
+            type="button"
+            onClick={handleNextArtifact}
+            className="rounded border border-blue-300/60 bg-blue-500/15 px-3 py-1 text-sm font-medium text-blue-100 hover:bg-blue-500/25"
+          >
+            Next artifact
+          </button>
+          <button
+            type="button"
+            onClick={handlePreviousArtifact}
+            className="rounded border border-parchment-dim/30 bg-navy px-3 py-1 text-sm text-parchment hover:bg-navy/60"
+          >
+            Previous artifact
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile museums menu overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 overflow-auto bg-navy/95 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-xl text-parchment">Holders</h2>
+            <button
+              aria-label="Close menu"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-parchment-dim px-2 py-1"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => { handleSelectMuseum(null); setMobileMenuOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm rounded bg-navy/40 text-parchment"
+            >
+              All artifacts · {artifacts.length}
+            </button>
+            {museumGroups.map((g) => (
+              <button
+                key={g.key}
+                type="button"
+                onClick={() => { handleSelectMuseum(g.key); setMobileMenuOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm rounded bg-navy/30 text-parchment"
+                title={g.qid ? `${g.name} (${g.qid})` : g.name}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="truncate">{g.name}</span>
+                  <span className="text-xs opacity-70">{g.count}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile details overlay */}
+      {mobileDetailsOpen && (
+        <div className="md:hidden fixed inset-0 z-50 overflow-auto bg-navy/95 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-xl text-parchment">Details</h2>
+            <div className="flex items-center gap-2">
+              <button
+                aria-label="Close details"
+                onClick={() => setMobileDetailsOpen(false)}
+                className="text-parchment-dim px-2 py-1"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          {!selected ? (
+            <div className="text-parchment-dim">No artifact selected.</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded border border-navy-border/70 bg-navy/70 px-4 py-4">
+                <h3 className="font-heading text-2xl text-parchment truncate">{previewTitle ?? selected.title}</h3>
+                <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}{selectedMuseum && <span className="ml-1 opacity-70"> in {selectedMuseum}</span>}</p>
+              </div>
+
+              {previewImage && previewTitle && (
+                <div className="relative h-56 rounded border border-navy-border overflow-hidden bg-navy">
+                  <Image src={previewImage} alt={previewTitle} fill className="object-contain" unoptimized />
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {primarySource ? (
+                  <a
+                    href={primarySource}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
+                  >
+                    Open source URL ↗
+                  </a>
+                ) : (
+                  <span className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment-dim/60">
+                    No source URL available
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleNextArtifact}
+                  className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment hover:bg-navy/60"
+                >
+                  Next artifact
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePreviousArtifact}
+                  className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment hover:bg-navy/60"
+                >
+                  Previous artifact
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setMobileDetailsOpen(false); setMobileMenuOpen(false); }}
+                  className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="grid gap-3 text-base">
+                <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim">
+                  <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Holder</span>
+                  <span className="mt-1 block text-parchment">{selected.holder?.name ?? 'Unresolved'}{selected.holder?.qid ? ` (${selected.holder.qid})` : ''}</span>
+                </p>
+                <p className="rounded border border-navy-border/60 bg-navy/40 px-4 py-3 text-parchment-dim">
+                  <span className="block text-sm uppercase tracking-wide text-parchment-dim/80">Primary category</span>
+                  <span className="mt-1 block text-parchment">{selected.primaryCategory?.name ?? 'Unresolved'}{selected.primaryCategory?.qid ? ` (${selected.primaryCategory.qid})` : ''}</span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 min-w-0 relative">
         <ReviewMapLeaflet
           artifacts={filteredArtifacts}
@@ -222,7 +406,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         />
       </div>
 
-      <aside className="w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
+      <aside className="hidden md:block w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
         {!selected ? (
           <div className="p-6 text-base text-parchment-dim">No artifact selected.</div>
         ) : (
@@ -264,6 +448,22 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
                   No source URL available
                 </span>
               )}
+
+              <button
+                type="button"
+                onClick={handleNextArtifact}
+                className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
+              >
+                Next artifact
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePreviousArtifact}
+                className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment hover:bg-navy/60"
+              >
+                Previous artifact
+              </button>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
