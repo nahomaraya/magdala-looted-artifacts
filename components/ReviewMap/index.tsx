@@ -1,24 +1,18 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewMapState } from './useReviewMapState';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
-import { ArtifactPane, DedupBadge } from './Artifact';
+import { ArtifactPane } from '../Artifact';
 import LeftRail from './LeftRail';
 import MobileHeader from './MobileHeader';
 import MobileMenu from './MobileMenu';
 import MobileDetails from './MobileDetails';
-import { UNKNOWN_HOLDER, MuseumGroup } from './reviewMapUtils';
+import { type ReviewWikidataHit } from './reviewMapUtils';
 
-export interface ReviewWikidataHit {
-  qid: string;
-  label: string;
-  imageUrl?: string;
-  wikidataUrl: string;
-}
+export type { ReviewWikidataHit };
 
 interface Props {
   artifacts: ArtifactCard[];
@@ -36,6 +30,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     mobileDetailsOpen,
     setMobileDetailsOpen,
     museumGroups,
+    visibleArtifacts,
     filteredArtifacts,
     focusedCoords,
     selected,
@@ -43,6 +38,8 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     handleSelectMuseum,
     handleNextArtifact,
     handlePreviousArtifact,
+    showWeakLinkArtifacts,
+    setShowWeakLinkArtifacts,
     primarySource,
     previewImage,
     previewTitle,
@@ -55,7 +52,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     <div className="flex h-screen bg-navy flex-col md:flex-row">
       <LeftRail
         museumGroups={museumGroups}
-        artifacts={artifacts}
+        artifacts={visibleArtifacts}
         selectedMuseum={selectedMuseum}
         onSelectMuseum={handleSelectMuseum}
       />
@@ -71,9 +68,11 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
       <MobileMenu
         mobileMenuOpen={mobileMenuOpen}
         museumGroups={museumGroups}
-        artifacts={artifacts}
+        artifacts={visibleArtifacts}
         onClose={() => setMobileMenuOpen(false)}
         onSelectMuseum={(name) => { handleSelectMuseum(name); setMobileMenuOpen(false); }}
+        showWeakLinkArtifacts={showWeakLinkArtifacts}
+        onToggleWeakLinkArtifacts={() => setShowWeakLinkArtifacts((s) => !s)}
       />
 
       <MobileDetails
@@ -97,6 +96,22 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
           onSelect={setSelectedWpId}
           focusCoords={focusedCoords}
         />
+        <div className="hidden md:block absolute top-3 right-3 z-[1000] group">
+          <button
+            type="button"
+            onClick={() => setShowWeakLinkArtifacts((s) => !s)}
+            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors ${
+              showWeakLinkArtifacts
+                ? 'bg-blue-500/80 text-white hover:bg-blue-500'
+                : 'bg-navy/80 text-parchment hover:bg-navy backdrop-blur-sm'
+            }`}
+          >
+            {showWeakLinkArtifacts ? 'Hide weak link objects' : 'Show weak link objects'}
+          </button>
+          <span className="pointer-events-none absolute top-full right-0 mt-2 w-56 rounded bg-navy px-3 py-2 text-xs text-parchment-dim shadow-lg opacity-0 transition-opacity group-hover:opacity-100">
+            Items with a weaker link to the expedition and the battle than others.
+          </span>
+        </div>
       </div>
 
       <ArtifactPane

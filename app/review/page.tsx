@@ -1,7 +1,8 @@
 import { getReviewArtifacts } from '@/lib/getReviewArtifacts';
 import { batchFetchBasicData } from '@/lib/utils/batchFetchBasicData';
 import { resolveCommonsImage } from '@/lib/utils/resolveCommonsImage';
-import ReviewMap, { type ReviewWikidataHit } from '@/components/ReviewMap';
+// import ReviewMap, { type ReviewWikidataHit } from '@/components/ReviewMap';
+import ReviewMap, {type ReviewWikidataHit } from '@/components/ReviewMap/index';
 
 export const dynamic = 'force-dynamic';
 

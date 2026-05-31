@@ -7,12 +7,16 @@ export default function MobileMenu({
   artifacts,
   onClose,
   onSelectMuseum,
+  showWeakLinkArtifacts,
+  onToggleWeakLinkArtifacts,
 }: {
   mobileMenuOpen: boolean;
   museumGroups: MuseumGroup[];
   artifacts: ArtifactCard[];
   onClose: () => void;
   onSelectMuseum: (name: string | null) => void;
+  showWeakLinkArtifacts: boolean;
+  onToggleWeakLinkArtifacts: () => void;
 }) {
   if (!mobileMenuOpen) return null;
   return (
@@ -22,6 +26,15 @@ export default function MobileMenu({
         <button aria-label="Close menu" onClick={onClose} className="text-parchment-dim px-2 py-1">✕</button>
       </div>
       <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => { onToggleWeakLinkArtifacts(); onClose(); }}
+          className={`w-full text-left px-4 py-2 text-sm rounded ${
+            showWeakLinkArtifacts ? 'bg-blue-500/15 text-blue-200' : 'bg-navy/30 text-parchment'
+          }`}
+        >
+          {showWeakLinkArtifacts ? 'Hide weak link objects' : 'Show weak link objects'}
+        </button>
         <button
           type="button"
           onClick={() => { onSelectMuseum(null); onClose(); }}
