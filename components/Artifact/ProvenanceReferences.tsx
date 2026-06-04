@@ -1,5 +1,5 @@
 'use client';
-import { labelForSourceUrl } from '../reviewMapUtils';
+import { labelForSourceUrl } from '../ReviewMap/reviewMapUtils';
 import type { ArtifactCard } from '@/lib/types';
 
 export default function ProvenanceReferences({

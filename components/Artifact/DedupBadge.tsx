@@ -1,5 +1,5 @@
 import type { ArtifactCard } from '@/lib/types';
-import { getReviewStatus } from '../reviewMapUtils';
+import { getReviewStatus } from '../ReviewMap/reviewMapUtils';
 
 export default function DedupBadge({ card }: { card: ArtifactCard }) {
   const status = getReviewStatus(card);
