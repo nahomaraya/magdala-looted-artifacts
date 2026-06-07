@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewMapState } from './useReviewMapState';
@@ -17,9 +18,10 @@ export type { ReviewWikidataHit };
 interface Props {
   artifacts: ArtifactCard[];
   wikidataHits: Record<string, ReviewWikidataHit>;
+  initialSelectedWpId?: string | null;
 }
 
-export default function ReviewMap({ artifacts, wikidataHits }: Props) {
+export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
   const {
     selectedWpId,
     setSelectedWpId,
@@ -40,13 +42,16 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     handlePreviousArtifact,
     showWeakLinkArtifacts,
     setShowWeakLinkArtifacts,
+    showReturnedOnly,
+    setShowReturnedOnly,
+    returnedCount,
     primarySource,
     previewImage,
     previewTitle,
     takenFromLabel,
     currentLocationLabel,
     responsibleLabel,
-  } = useReviewMapState(artifacts, wikidataHits);
+  } = useReviewMapState(artifacts, wikidataHits, initialSelectedWpId);
 
   return (
     <div className="flex h-screen bg-navy flex-col md:flex-row">
@@ -54,7 +59,9 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         museumGroups={museumGroups}
         artifacts={visibleArtifacts}
         selectedMuseum={selectedMuseum}
+        selectedWpId={selectedWpId}
         onSelectMuseum={handleSelectMuseum}
+        onSelectArtifact={setSelectedWpId}
       />
 
       <MobileHeader
@@ -73,6 +80,9 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         onSelectMuseum={(name) => { handleSelectMuseum(name); setMobileMenuOpen(false); }}
         showWeakLinkArtifacts={showWeakLinkArtifacts}
         onToggleWeakLinkArtifacts={() => setShowWeakLinkArtifacts((s) => !s)}
+        showReturnedOnly={showReturnedOnly}
+        onToggleReturnedOnly={() => setShowReturnedOnly((s) => !s)}
+        returnedCount={returnedCount}
       />
 
       <MobileDetails
@@ -96,11 +106,35 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
           onSelect={setSelectedWpId}
           focusCoords={focusedCoords}
         />
-        <div className="hidden md:block absolute top-3 right-3 z-[1000] group">
+        <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
+          <Link
+            href="/looted-library"
+            className="rounded bg-gold px-3 py-1.5 text-xs font-semibold text-navy shadow transition-colors hover:bg-gold-light"
+          >
+            View library
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowReturnedOnly((s) => !s)}
+            disabled={returnedCount === 0}
+            title={
+              returnedCount === 0
+                ? 'No artifacts recorded as returned yet'
+                : 'Show only artifacts repatriated to Ethiopia'
+            }
+            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              showReturnedOnly
+                ? 'bg-emerald-500/80 text-white hover:bg-emerald-500'
+                : 'bg-navy/80 text-parchment hover:bg-navy backdrop-blur-sm'
+            }`}
+          >
+            {showReturnedOnly ? 'Show all objects' : `Returned to Ethiopia (${returnedCount})`}
+          </button>
           <button
             type="button"
             onClick={() => setShowWeakLinkArtifacts((s) => !s)}
-            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors ${
+            disabled={showReturnedOnly}
+            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               showWeakLinkArtifacts
                 ? 'bg-blue-500/80 text-white hover:bg-blue-500'
                 : 'bg-navy/80 text-parchment hover:bg-navy backdrop-blur-sm'

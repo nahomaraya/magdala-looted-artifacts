@@ -5,11 +5,22 @@ import { useVisibleArtifacts } from './useVisibleArtifacts';
 import { useMuseumFilter } from './useMuseumFilter';
 import { useArtifactNav } from './useArtifactNav';
 
-export function useReviewMapState(artifacts: ArtifactCard[], wikidataHits: Record<string, ReviewWikidataHit>) {
-  const { visibleArtifacts, showWeakLinkArtifacts, setShowWeakLinkArtifacts } = useVisibleArtifacts(artifacts);
+export function useReviewMapState(
+  artifacts: ArtifactCard[],
+  wikidataHits: Record<string, ReviewWikidataHit>,
+  initialSelectedWpId: string | null = null,
+) {
+  const {
+    visibleArtifacts,
+    showWeakLinkArtifacts,
+    setShowWeakLinkArtifacts,
+    showReturnedOnly,
+    setShowReturnedOnly,
+    returnedCount,
+  } = useVisibleArtifacts(artifacts, initialSelectedWpId);
   const { selectedMuseum, setSelectedMuseum, museumGroups, filteredArtifacts, focusedCoords } =
     useMuseumFilter(visibleArtifacts);
-  const nav = useArtifactNav(filteredArtifacts);
+  const nav = useArtifactNav(filteredArtifacts, initialSelectedWpId);
 
   const handleSelectMuseum = (name: string | null) => {
     setSelectedMuseum(name);
@@ -41,6 +52,9 @@ export function useReviewMapState(artifacts: ArtifactCard[], wikidataHits: Recor
     focusedCoords,
     showWeakLinkArtifacts,
     setShowWeakLinkArtifacts,
+    showReturnedOnly,
+    setShowReturnedOnly,
+    returnedCount,
     selected,
     handleSelectMuseum,
     primarySource,
