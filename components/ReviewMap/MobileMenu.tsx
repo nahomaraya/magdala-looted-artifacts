@@ -9,6 +9,9 @@ export default function MobileMenu({
   onSelectMuseum,
   showWeakLinkArtifacts,
   onToggleWeakLinkArtifacts,
+  showReturnedOnly,
+  onToggleReturnedOnly,
+  returnedCount,
 }: {
   mobileMenuOpen: boolean;
   museumGroups: MuseumGroup[];
@@ -17,6 +20,9 @@ export default function MobileMenu({
   onSelectMuseum: (name: string | null) => void;
   showWeakLinkArtifacts: boolean;
   onToggleWeakLinkArtifacts: () => void;
+  showReturnedOnly: boolean;
+  onToggleReturnedOnly: () => void;
+  returnedCount: number;
 }) {
   if (!mobileMenuOpen) return null;
   return (
@@ -28,8 +34,19 @@ export default function MobileMenu({
       <div className="space-y-2">
         <button
           type="button"
+          onClick={() => { onToggleReturnedOnly(); onClose(); }}
+          disabled={returnedCount === 0}
+          className={`w-full text-left px-4 py-2 text-sm rounded disabled:opacity-50 ${
+            showReturnedOnly ? 'bg-emerald-500/15 text-emerald-200' : 'bg-navy/30 text-parchment'
+          }`}
+        >
+          {showReturnedOnly ? 'Show all objects' : `Returned to Ethiopia (${returnedCount})`}
+        </button>
+        <button
+          type="button"
           onClick={() => { onToggleWeakLinkArtifacts(); onClose(); }}
-          className={`w-full text-left px-4 py-2 text-sm rounded ${
+          disabled={showReturnedOnly}
+          className={`w-full text-left px-4 py-2 text-sm rounded disabled:opacity-50 ${
             showWeakLinkArtifacts ? 'bg-blue-500/15 text-blue-200' : 'bg-navy/30 text-parchment'
           }`}
         >

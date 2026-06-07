@@ -42,6 +42,9 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
     handlePreviousArtifact,
     showWeakLinkArtifacts,
     setShowWeakLinkArtifacts,
+    showReturnedOnly,
+    setShowReturnedOnly,
+    returnedCount,
     primarySource,
     previewImage,
     previewTitle,
@@ -77,6 +80,9 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
         onSelectMuseum={(name) => { handleSelectMuseum(name); setMobileMenuOpen(false); }}
         showWeakLinkArtifacts={showWeakLinkArtifacts}
         onToggleWeakLinkArtifacts={() => setShowWeakLinkArtifacts((s) => !s)}
+        showReturnedOnly={showReturnedOnly}
+        onToggleReturnedOnly={() => setShowReturnedOnly((s) => !s)}
+        returnedCount={returnedCount}
       />
 
       <MobileDetails
@@ -109,8 +115,26 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
           </Link>
           <button
             type="button"
+            onClick={() => setShowReturnedOnly((s) => !s)}
+            disabled={returnedCount === 0}
+            title={
+              returnedCount === 0
+                ? 'No artifacts recorded as returned yet'
+                : 'Show only artifacts repatriated to Ethiopia'
+            }
+            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              showReturnedOnly
+                ? 'bg-emerald-500/80 text-white hover:bg-emerald-500'
+                : 'bg-navy/80 text-parchment hover:bg-navy backdrop-blur-sm'
+            }`}
+          >
+            {showReturnedOnly ? 'Show all objects' : `Returned to Ethiopia (${returnedCount})`}
+          </button>
+          <button
+            type="button"
             onClick={() => setShowWeakLinkArtifacts((s) => !s)}
-            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors ${
+            disabled={showReturnedOnly}
+            className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               showWeakLinkArtifacts
                 ? 'bg-blue-500/80 text-white hover:bg-blue-500'
                 : 'bg-navy/80 text-parchment hover:bg-navy backdrop-blur-sm'

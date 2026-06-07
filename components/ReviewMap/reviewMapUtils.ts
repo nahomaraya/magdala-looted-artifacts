@@ -55,6 +55,21 @@ export function labelForSourceUrl(url: string): string {
 
 export const UNKNOWN_HOLDER = 'Unknown / Unresolved';
 
+const RETURNED_CATEGORY_PATTERN = /returned\s+plunder/i;
+
+/**
+ * An artifact counts as repatriated to Ethiopia when either the Airtable
+ * `returned` flag is set or it carries the source-site "Returned plunder"
+ * category. The category is the more reliable signal since the boolean is
+ * only sparsely filled in.
+ */
+export function isReturnedArtifact(card: ArtifactCard): boolean {
+  if (card.returned) return true;
+  return card.allCategories.some(
+    (c) => RETURNED_CATEGORY_PATTERN.test(c.name) || RETURNED_CATEGORY_PATTERN.test(c.rawName),
+  );
+}
+
 export interface ReviewWikidataHit {
   qid: string;
   label: string;
