@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewMapState } from './useReviewMapState';
@@ -54,7 +55,9 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
         museumGroups={museumGroups}
         artifacts={visibleArtifacts}
         selectedMuseum={selectedMuseum}
+        selectedWpId={selectedWpId}
         onSelectMuseum={handleSelectMuseum}
+        onSelectArtifact={setSelectedWpId}
       />
 
       <MobileHeader
@@ -96,7 +99,13 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
           onSelect={setSelectedWpId}
           focusCoords={focusedCoords}
         />
-        <div className="hidden md:block absolute top-3 right-3 z-[1000] group">
+        <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
+          <Link
+            href="/looted-library"
+            className="rounded bg-gold px-3 py-1.5 text-xs font-semibold text-navy shadow transition-colors hover:bg-gold-light"
+          >
+            View library
+          </Link>
           <button
             type="button"
             onClick={() => setShowWeakLinkArtifacts((s) => !s)}

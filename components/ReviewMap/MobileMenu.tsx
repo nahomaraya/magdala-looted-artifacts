@@ -35,13 +35,7 @@ export default function MobileMenu({
         >
           {showWeakLinkArtifacts ? 'Hide weak link objects' : 'Show weak link objects'}
         </button>
-        <button
-          type="button"
-          onClick={() => { onSelectMuseum(null); onClose(); }}
-          className="w-full text-left px-4 py-2 text-sm rounded bg-navy/40 text-parchment"
-        >
-          All artifacts · {artifacts.length}
-        </button>
+        {/* Removed 'All artifacts' option per UX request */}
         {museumGroups.map((g) => (
           <button
             key={g.key}
