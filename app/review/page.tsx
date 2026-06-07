@@ -6,6 +6,13 @@ import ReviewMap, {type ReviewWikidataHit } from '@/components/ReviewMap/index';
 
 export const dynamic = 'force-dynamic';
 
+type ReviewPageProps = {
+  // Next.js 15+ delivers searchParams as a Promise that must be awaited.
+  searchParams?: Promise<{
+    wpId?: string;
+  }>;
+};
+
 async function buildWikidataHitMap(
   artifacts: Awaited<ReturnType<typeof getReviewArtifacts>>,
 ): Promise<Record<string, ReviewWikidataHit>> {
@@ -41,10 +48,17 @@ async function buildWikidataHitMap(
   return Object.fromEntries(entries);
 }
 
-export default async function ReviewPage() {
+export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   // Dedup intentionally off while no items are being minted. Flip back on
   // (drop skipDedup, or set to false) once you start running QuickStatements.
+  const { wpId } = (await searchParams) ?? {};
   const artifacts = await getReviewArtifacts({ skipDedup: true });
   const wikidataHits = await buildWikidataHitMap(artifacts);
-  return <ReviewMap artifacts={artifacts} wikidataHits={wikidataHits} />;
+  return (
+    <ReviewMap
+      artifacts={artifacts}
+      wikidataHits={wikidataHits}
+      initialSelectedWpId={wpId ?? null}
+    />
+  );
 }

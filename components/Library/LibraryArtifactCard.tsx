@@ -1,13 +1,18 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
+import { classifyBookType, type BookType } from '@/lib/libraryBookTypes';
 import { checkCanEmbed } from '@/app/actions/check-iframe'; // <-- Adjust path as needed
 
 interface LibraryArtifactCardProps {
   artifact: ArtifactCard;
+  /** Primary book type. Falls back to deriving it when not supplied. */
+  bookType?: BookType;
 }
 
-export default function LibraryArtifactCard({ artifact }: LibraryArtifactCardProps) {
+export default function LibraryArtifactCard({ artifact, bookType }: LibraryArtifactCardProps) {
+  const type = bookType ?? classifyBookType(artifact);
   const primarySource = artifact.sourceLinks[0] ?? artifact.url;
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [iframeFailed, setIframeFailed] = useState(false);
@@ -82,9 +87,24 @@ export default function LibraryArtifactCard({ artifact }: LibraryArtifactCardPro
   return (
     <article className="group overflow-hidden rounded-3xl border border-navy-border/80 bg-navy-light/80 shadow-[0_24px_70px_rgba(0,0,0,0.28)] transition duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_30px_80px_rgba(0,0,0,0.36)]">
       <div className="border-b border-navy-border/70 px-5 py-5 sm:px-6">
-        <p className="text-xs uppercase tracking-[0.35em] text-gold-dim/80">Primary source</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-[0.35em] text-gold-dim/80">Primary source</p>
+          <span
+            title={type.blurb}
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${type.badgeClass}`}
+          >
+            {type.label}
+          </span>
+        </div>
         <div className="mt-3 flex flex-col gap-3">
           <h2 className="text-xl font-semibold leading-snug text-parchment sm:text-2xl">{artifact.title}</h2>
+          <Link
+            href={`/review?wpId=${encodeURIComponent(artifact.wpId)}`}
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/35 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-400/60 hover:bg-blue-400/20"
+          >
+            Show in map
+            <span aria-hidden="true">↗</span>
+          </Link>
           <a
             href={primarySource}
             target="_blank"

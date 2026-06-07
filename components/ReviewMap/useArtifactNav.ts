@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
 
-export function useArtifactNav(filteredArtifacts: ArtifactCard[]) {
-  const [selectedWpId, setSelectedWpId] = useState<string | null>(filteredArtifacts[0]?.wpId ?? null);
+export function useArtifactNav(filteredArtifacts: ArtifactCard[], initialSelectedWpId: string | null = null) {
+  const [selectedWpId, setSelectedWpId] = useState<string | null>(initialSelectedWpId ?? filteredArtifacts[0]?.wpId ?? null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
 

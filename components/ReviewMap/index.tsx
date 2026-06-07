@@ -18,9 +18,10 @@ export type { ReviewWikidataHit };
 interface Props {
   artifacts: ArtifactCard[];
   wikidataHits: Record<string, ReviewWikidataHit>;
+  initialSelectedWpId?: string | null;
 }
 
-export default function ReviewMap({ artifacts, wikidataHits }: Props) {
+export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
   const {
     selectedWpId,
     setSelectedWpId,
@@ -47,7 +48,7 @@ export default function ReviewMap({ artifacts, wikidataHits }: Props) {
     takenFromLabel,
     currentLocationLabel,
     responsibleLabel,
-  } = useReviewMapState(artifacts, wikidataHits);
+  } = useReviewMapState(artifacts, wikidataHits, initialSelectedWpId);
 
   return (
     <div className="flex h-screen bg-navy flex-col md:flex-row">
