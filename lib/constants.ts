@@ -1,5 +1,9 @@
 export const MAGDALA_COORDS: [number, number] = [11.2167, 39.3167];
 
+/** National Museum of Ethiopia, Addis Ababa — the default home for
+ *  repatriated ("returned") plunder regardless of its prior holder. */
+export const ADDIS_ABABA_COORDS: [number, number] = [9.038333, 38.761944];
+
 export const INSTITUTION_COORDS: Record<string, [number, number]> = {
   'British Museum': [51.5194, -0.1270],
   'British Library': [51.5299, -0.1272],
