@@ -1,12 +1,14 @@
 import {
-  SPARQL_ENDPOINT,
-  USER_AGENT,
   PROJECT_QID,
   LOOTING_QID,
   MAQDALA_BATTLE_QID,
   P_DESCRIBED_AT_URL,
 } from './constants';
 import { tokenSortRatio } from './utils/tokenSortRatio';
+import { sparqlPost, sleep, qidFromUri } from './utils/sparql';
+
+// Re-exported from the shared SPARQL util to avoid churn in existing importers.
+export { sparqlPost, sleep, qidFromUri };
 
 /**
  * Wikidata dedup for the Prince-and-Plunder pipeline. Mirrors `data/dedup.py`.
@@ -34,55 +36,6 @@ import { tokenSortRatio } from './utils/tokenSortRatio';
  * click. The survey query for the fuzzy fallback is cached in-process for
  * 24h to avoid hammering WDQS on every page.
  */
-
-// ─── SPARQL plumbing ───────────────────────────────────────────────────────
-
-type Binding = Record<string, { value: string; type: string }>;
-
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
-/**
- * POST-based SPARQL helper with retry on 429. WDQS rate-limits anonymous
- * traffic at ~60 queries/minute per IP, and on a hot page reload the dedup
- * pipeline can easily blow past that. We honour the `Retry-After` header
- * when WDQS sends one and fall back to exponential backoff otherwise.
- *
- * The dedup pipeline can also send `VALUES` clauses with hundreds of URLs,
- * which is why this uses POST instead of GET.
- */
-async function sparqlPost(query: string, attempt = 0): Promise<Binding[]> {
-  const res = await fetch(SPARQL_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/sparql-results+json',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': USER_AGENT,
-    },
-    body: new URLSearchParams({ query, format: 'json' }),
-    cache: 'no-store',
-  });
-
-  if (res.status === 429 && attempt < 3) {
-    const headerRetry = Number(res.headers.get('Retry-After'));
-    const waitSeconds = Number.isFinite(headerRetry) && headerRetry > 0
-      ? headerRetry
-      : Math.pow(2, attempt) + Math.random();
-    console.warn(`[dedup] WDQS 429 - retrying in ${waitSeconds.toFixed(1)}s (attempt ${attempt + 1}/3)`);
-    await sleep(waitSeconds * 1000);
-    return sparqlPost(query, attempt + 1);
-  }
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`SPARQL ${res.status}: ${body.slice(0, 200)}`);
-  }
-  const data = await res.json();
-  return data.results.bindings as Binding[];
-}
-
-function qidFromUri(uri: string): string {
-  return uri.split('/').pop() ?? uri;
-}
 
 // ─── Strategy 1: exact P973 match ─────────────────────────────────────────
 
