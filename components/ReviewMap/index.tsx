@@ -108,7 +108,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
         />
         <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
           <Link
-            href="/looted-library"
+            href="/library"
             className="rounded bg-gold px-3 py-1.5 text-xs font-semibold text-navy shadow transition-colors hover:bg-gold-light"
           >
             View library

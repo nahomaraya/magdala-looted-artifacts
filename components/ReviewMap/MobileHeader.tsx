@@ -23,7 +23,7 @@ export default function MobileHeader({ previewTitle, onToggleMenu, onOpenDetails
 
       <div className="flex items-center gap-2">
         <Link
-          href="/looted-library"
+          href="/library"
           className="rounded border border-gold/60 bg-gold px-3 py-1 text-sm font-semibold text-navy hover:bg-gold-light"
         >
           View library
