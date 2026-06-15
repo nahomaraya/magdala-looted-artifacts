@@ -13,6 +13,7 @@ import {
   PROJECT_QID,
   LOOTING_QID,
   MAQDALA_BATTLE_QID,
+  BRITISH_EXPEDITION_QID,
   NATIONAL_MUSEUM_ETHIOPIA_QID,
   DISPUTED_CLAIM_QID,
   LOOTED_ART_QID,
@@ -39,21 +40,22 @@ function splitConcat(value: string | undefined): string[] {
 // ─── Q1: discovery ─────────────────────────────────────────────────────────
 
 /**
- * Every item in scope: members of WikiProject Looted Heritage, plus items whose
- * `looting` (P793) statement is qualified by the Battle of Magdala or the year
- * 1868. Mirrors the dedup survey query — one round-trip, no fallback list.
+ * Items on the WikiProject Looted Heritage focus list whose looting statement
+ * is qualified by time period = British expedition to Abyssinia (P2348) AND
+ * has cause = Battle of Magdala (P828). All three conditions are required.
  */
 async function discoverArtifactQIDs(): Promise<string[]> {
   const query = `
-    SELECT DISTINCT ?item WHERE {
-      { ?item wdt:P5008 wd:${PROJECT_QID} . }
-      UNION
-      { ?item p:P793 ?st . ?st ps:P793 wd:${LOOTING_QID} ; pq:P2348 wd:${MAQDALA_BATTLE_QID} . }
-      UNION
-      { ?item p:P793 ?st . ?st ps:P793 wd:${LOOTING_QID} ; pq:P585 ?date . FILTER(YEAR(?date) = 1868) }
+    SELECT ?Item ?ItemLabel ?ItemDescription WHERE {
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+      ?Item wdt:P5008 wd:${PROJECT_QID}.
+      ?Item p:P793 ?stmt.
+      ?stmt ps:P793 wd:${LOOTING_QID}.
+      ?stmt pq:P2348 wd:${BRITISH_EXPEDITION_QID}.
+      ?stmt pq:P828 wd:${MAQDALA_BATTLE_QID}.
     }`;
   const bindings = await sparqlPost(query);
-  return bindings.map((b) => qidFromUri(b.item.value));
+  return bindings.map((b) => qidFromUri(b.Item.value));
 }
 
 // ─── Q2: per-item fields ─────────────────────────────────────────────────────
