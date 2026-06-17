@@ -5,6 +5,7 @@ import ArtifactCategoriesCard from './ArtifactCategoriesCard';
 
 export default function ArtifactMetadataGrid({ selected }: { selected: ArtifactCard }) {
   const primarySourceUrl = selected.sourceLinks[0] ?? null;
+  const primarySourcePreviewUrl = primarySourceUrl?.startsWith('http://') ? primarySourceUrl.replace('http://', 'https://') : primarySourceUrl;
 
   return (
     <div className="grid gap-3 text-base sm:grid-cols-2">
@@ -40,10 +41,10 @@ export default function ArtifactMetadataGrid({ selected }: { selected: ArtifactC
           )}
         </div> */}
 
-        {primarySourceUrl ? (
+        {primarySourcePreviewUrl ? (
           <iframe
             title={`Primary source preview for ${selected.title}`}
-            src={primarySourceUrl}
+            src={primarySourcePreviewUrl}
             className="h-125 w-full bg-navy"
           />
         ) : (
