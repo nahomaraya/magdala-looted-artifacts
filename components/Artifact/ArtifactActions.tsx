@@ -3,16 +3,27 @@ import type { ArtifactCard } from '@/lib/types';
 
 export default function ArtifactActions({
   primarySource,
+  wikidataUrl,
   handleNextArtifact,
   handlePreviousArtifact,
 }: {
   primarySource: string | null;
+  wikidataUrl: string | null;
   handleNextArtifact: () => void;
   handlePreviousArtifact: () => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {primarySource ? (
+      {wikidataUrl ? (
+        <a
+          href={wikidataUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
+        >
+          View on Wikidata ↗
+        </a>
+      ) : primarySource ? (
         <a
           href={primarySource}
           target="_blank"

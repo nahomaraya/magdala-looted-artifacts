@@ -46,8 +46,14 @@ export const FALLBACK_QIDS = ['Q1123371', 'Q116693582'];
 // Dedup constants ─────────────────────────────────────────────────────────
 export const PROJECT_QID = 'Q124538244';     // WikiProject Looted Heritage
 export const LOOTING_QID = 'Q192623';        // looting (the event class for P793)
-export const MAQDALA_BATTLE_QID = 'Q947667'; // Battle of Magdala (P2348 qualifier)
+export const MAQDALA_BATTLE_QID = 'Q947667';          // Battle of Magdala — pq:P828 (has cause)
+export const BRITISH_EXPEDITION_QID = 'Q743652';      // British expedition to Abyssinia — pq:P2348 (time period)
 export const P_DESCRIBED_AT_URL = 'P973';    // join key linking WD items to post URLs
+
+// Wikidata-sourced read path (lib/getWikidataArtifacts.ts) ─────────────────
+export const NATIONAL_MUSEUM_ETHIOPIA_QID = 'Q2652168'; // home of repatriated plunder
+export const DISPUTED_CLAIM_QID = 'Q18912752';          // pq:P5102 value flagging a weak link
+export const LOOTED_ART_QID = 'Q851304';                // universal P31 on every item — filtered from categories
 
 export const SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';
 export const WIKIDATA_REST_BASE = 'https://www.wikidata.org/w/rest.php/wikibase/v1';

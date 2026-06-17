@@ -1,8 +1,6 @@
-import { getReviewArtifacts } from '@/lib/getReviewArtifacts';
-import { batchFetchBasicData } from '@/lib/utils/batchFetchBasicData';
-import { resolveCommonsImage } from '@/lib/utils/resolveCommonsImage';
-// import ReviewMap, { type ReviewWikidataHit } from '@/components/ReviewMap';
-import ReviewMap, {type ReviewWikidataHit } from '@/components/ReviewMap/index';
+import { getArtifacts } from '@/lib/artifactSource';
+import type { ArtifactCard } from '@/lib/types';
+import ReviewMap, { type ReviewWikidataHit } from '@/components/ReviewMap/index';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,47 +11,35 @@ type ReviewPageProps = {
   }>;
 };
 
-async function buildWikidataHitMap(
-  artifacts: Awaited<ReturnType<typeof getReviewArtifacts>>,
-): Promise<Record<string, ReviewWikidataHit>> {
-  const qids = Array.from(
-    new Set(
-      artifacts
-        .filter((a) => a.dedup.method === 'p973' && a.dedup.qid)
-        .map((a) => a.dedup.qid as string),
-    ),
-  );
-
-  if (qids.length === 0) return {};
-
-  const basicData = await batchFetchBasicData(qids);
-  const entries = await Promise.all(
-    qids.map(async (qid) => {
-      const row = basicData.get(qid);
-      const imageUrl = row?.imageFilename
-        ? await resolveCommonsImage(row.imageFilename)
-        : undefined;
-      return [
-        qid,
-        {
-          qid,
-          label: row?.label ?? qid,
-          imageUrl,
-          wikidataUrl: `https://www.wikidata.org/wiki/${qid}`,
-        },
-      ] as const;
-    }),
-  );
-
-  return Object.fromEntries(entries);
+/**
+ * Wikidata hits keyed by QID, built straight from the cards. When the source
+ * is Wikidata every card already carries its label and image, so there's no
+ * need for per-item REST/Commons lookups — that N+1 pattern is exactly what
+ * this refactor removes.
+ */
+function buildWikidataHitMap(
+  artifacts: ArtifactCard[],
+): Record<string, ReviewWikidataHit> {
+  const hits: Record<string, ReviewWikidataHit> = {};
+  for (const a of artifacts) {
+    const qid = a.dedup.method === 'p973' ? a.dedup.qid : null;
+    if (!qid || hits[qid]) continue;
+    hits[qid] = {
+      qid,
+      label: a.title,
+      imageUrl: a.imageUrls[0],
+      wikidataUrl: `https://www.wikidata.org/wiki/${qid}`,
+    };
+  }
+  return hits;
 }
 
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
-  // Dedup intentionally off while no items are being minted. Flip back on
-  // (drop skipDedup, or set to false) once you start running QuickStatements.
   const { wpId } = (await searchParams) ?? {};
-  const artifacts = await getReviewArtifacts({ skipDedup: true });
-  const wikidataHits = await buildWikidataHitMap(artifacts);
+  // Source is chosen by ARTIFACT_SOURCE (default 'airtable'). skipDedup is a
+  // no-op for the Wikidata path; it only affects the Airtable loader.
+  const artifacts = await getArtifacts({ skipDedup: true });
+  const wikidataHits = buildWikidataHitMap(artifacts);
   return (
     <ReviewMap
       artifacts={artifacts}

@@ -35,6 +35,9 @@ export function useReviewMapState(
 
   const selectedWikidata =
     selected?.dedup.method === 'p973' && selected.dedup.qid ? wikidataHits[selected.dedup.qid] : null;
+  const wikidataUrl =
+    selectedWikidata?.wikidataUrl ??
+    (selected?.dedup.qid ? `https://www.wikidata.org/wiki/${selected.dedup.qid}` : null);
   const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];
   const previewTitle = selectedWikidata?.label ?? selected?.title;
   const takenFromLabel = 'Maqdala, Ethiopia (Battle of Magdala, 1868)';
@@ -58,6 +61,7 @@ export function useReviewMapState(
     selected,
     handleSelectMuseum,
     primarySource,
+    wikidataUrl,
     previewImage,
     previewTitle,
     takenFromLabel,

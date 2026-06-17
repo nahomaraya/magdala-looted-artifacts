@@ -38,6 +38,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
     selected,
     selectedIndex,
     handleSelectMuseum,
+    wikidataUrl,
     handleNextArtifact,
     handlePreviousArtifact,
     showWeakLinkArtifacts,
@@ -156,6 +157,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
         selectedMuseum={selectedMuseum}
         previewImage={previewImage}
         primarySource={primarySource}
+        wikidataUrl={wikidataUrl}
         handleNextArtifact={handleNextArtifact}
         handlePreviousArtifact={handlePreviousArtifact}
         takenFromLabel={takenFromLabel}

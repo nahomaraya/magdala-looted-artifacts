@@ -13,6 +13,7 @@ type ArtifactPaneProps = {
   selectedMuseum: string | null;
   previewImage?: string | undefined;
   primarySource: string | null;
+  wikidataUrl: string | null;
   handleNextArtifact: () => void;
   handlePreviousArtifact: () => void;
   takenFromLabel: string;
@@ -28,6 +29,7 @@ export function ArtifactPane({
   selectedMuseum,
   previewImage,
   primarySource,
+  wikidataUrl,
   handleNextArtifact,
   handlePreviousArtifact,
   takenFromLabel,
@@ -51,6 +53,7 @@ export function ArtifactPane({
 
           <ArtifactActions
             primarySource={primarySource}
+            wikidataUrl={wikidataUrl}
             handleNextArtifact={handleNextArtifact}
             handlePreviousArtifact={handlePreviousArtifact}
           />
