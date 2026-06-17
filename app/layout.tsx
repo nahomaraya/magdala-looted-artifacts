@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Source_Sans_3 } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${sourceSans.variable} h-full`} suppressHydrationWarning>
       <body className="h-full" suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
