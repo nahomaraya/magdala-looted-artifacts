@@ -9,6 +9,9 @@ import {
   EVENT_TYPES,
   IDENTIFIER_TEMPLATES,
   FALLBACK_QIDS,
+  PROJECT_QID,
+  MAQDALA_BATTLE_QID,
+  BRITISH_EXPEDITION_QID,
 } from './constants';
 import type { Artifact, ProvenanceEvent, ExternalIdentifier, Participant } from './types';
 import { resolveCommonsImage } from './utils/resolveCommonsImage';
@@ -83,63 +86,37 @@ export async function runSparql(query: string): Promise<Record<string, { value: 
   return data.results.bindings;
 }
 
-// ─── SPARQL Discovery Queries ─────────────────────────────────────────────
+// ─── SPARQL Discovery Query ───────────────────────────────────────────────
 
-const PATTERNS = [
-  {
-    name: 'pattern1',
-    query: `SELECT DISTINCT ?item WHERE {
-  ?item p:P793 ?stmt .
-  ?stmt ps:P793 wd:Q192623 .
-  ?stmt pq:P2348 wd:Q947667 .
-}`,
-  },
-  {
-    name: 'pattern2',
-    query: `SELECT DISTINCT ?item WHERE {
-  ?item p:P793 ?stmt .
-  ?stmt ps:P793 wd:Q192623 .
-  ?stmt pq:P585 ?date .
-  FILTER(YEAR(?date) = 1868)
-}`,
-  },
-  {
-    name: 'pattern3',
-    query: `SELECT DISTINCT ?item WHERE {
-  ?item p:P793 ?stmt .
-  ?stmt pq:P2348 wd:Q947667 .
-}`,
-  },
-];
+const DISCOVERY_QUERY = `SELECT ?Item ?ItemLabel ?ItemDescription WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?Item wdt:P5008 wd:${PROJECT_QID}.
+  ?Item p:P793 ?stmt.
+  ?stmt ps:P793 wd:Q192623.
+  ?stmt pq:P2348 wd:${BRITISH_EXPEDITION_QID}.
+  ?stmt pq:P828 wd:${MAQDALA_BATTLE_QID}.
+}`;
 
 export async function discoverArtifactQIDs(): Promise<{
   qids: string[];
   source: string;
   dataSource: 'sparql' | 'fallback';
 }> {
-  const seen = new Set<string>();
-  const sourceParts: string[] = [];
+  try {
+    const bindings = await runSparql(DISCOVERY_QUERY);
+    const qids = bindings.map((b) => b.Item.value.split('/').pop()!);
+    console.log(`SPARQL discovery: ${qids.length} results`);
 
-  for (const { name, query } of PATTERNS) {
-    try {
-      const bindings = await runSparql(query);
-      const qids = bindings.map((b) => b.item.value.split('/').pop()!);
-      qids.forEach((q) => seen.add(q));
-      if (qids.length > 0) sourceParts.push(`${name}(${qids.length})`);
-      console.log(`SPARQL ${name}: ${qids.length} results`);
-    } catch (e) {
-      console.error(`SPARQL ${name} failed:`, e);
+    if (qids.length === 0) {
+      console.log('SPARQL returned 0 results — using fallback QIDs');
+      return { qids: FALLBACK_QIDS, source: 'fallback', dataSource: 'fallback' };
     }
-  }
 
-  const qids = Array.from(seen);
-
-  if (qids.length === 0) {
-    console.log('All SPARQL patterns returned 0 results — using fallback QIDs');
+    return { qids, source: `sparql(${qids.length})`, dataSource: 'sparql' };
+  } catch (e) {
+    console.error('SPARQL discovery failed:', e);
     return { qids: FALLBACK_QIDS, source: 'fallback', dataSource: 'fallback' };
   }
-
-  return { qids, source: sourceParts.join(', '), dataSource: 'sparql' };
 }
 
 // ─── Wikidata REST API ─────────────────────────────────────────────────────

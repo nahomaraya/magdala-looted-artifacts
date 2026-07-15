@@ -4,14 +4,25 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MAGDALA_COORDS } from '@/lib/constants';
+import { MAGDALA_COORDS, ADDIS_ABABA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
+import { isReturnedArtifact } from './reviewMapUtils';
+
+/**
+ * Where an artifact sits on the map. Repatriated plunder defaults to the
+ * National Museum of Ethiopia in Addis Ababa, overriding whatever its prior
+ * holder resolved to; everything else uses its holder's coordinates.
+ */
+function artifactCoords(card: ArtifactCard): [number, number] | undefined {
+  if (isReturnedArtifact(card)) return ADDIS_ABABA_COORDS;
+  return card.holder?.coords;
+}
 
 type ReviewStatus = 'already' | 'fuzzy' | 'new';
 
 interface Props {
   artifacts: ArtifactCard[];
-  wikidataHits: Record<string, { label: string }>;
+  wikidataHits: Partial<Record<string, { label: string }>>;
   selectedWpId: string | null;
   onSelect: (wpId: string) => void;
   /** When set, the map flies to these coordinates instead of fitting bounds
@@ -50,7 +61,7 @@ function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {
   const groups = new Map<string, GroupedLocation>();
 
   for (const card of artifacts) {
-    const coords = card.holder?.coords;
+    const coords = artifactCoords(card);
     if (!coords) continue;
     const key = `${coords[0].toFixed(5)},${coords[1].toFixed(5)}`;
     if (!groups.has(key)) {
@@ -89,7 +100,7 @@ function ReviewMapController({
     }
 
     const selected = artifacts.find((a) => a.wpId === selectedWpId);
-    const coords = selected?.holder?.coords;
+    const coords = selected ? artifactCoords(selected) : undefined;
     if (!coords) return;
     const bounds = L.latLngBounds([MAGDALA_COORDS, coords]);
     map.flyToBounds(bounds, { padding: [70, 70], duration: 1 });
@@ -102,6 +113,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
+  const selectedCoords = selected ? artifactCoords(selected) : undefined;
 
   return (
     <MapContainer
@@ -129,9 +141,9 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
         </Tooltip>
       </CircleMarker>
 
-      {selected?.holder?.coords && (
+      {selectedCoords && (
         <Polyline
-          positions={[MAGDALA_COORDS, selected.holder.coords]}
+          positions={[MAGDALA_COORDS, selectedCoords]}
           pathOptions={{ color: '#e74c3c', weight: 2, opacity: 0.65, dashArray: '8 6' }}
         />
       )}
@@ -165,11 +177,11 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
                 </div>
                 <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
                   {group.artifacts.slice(0, 8).map((card) => (
-                    <div
+                    <button
                       key={card.wpId}
-                      className="cursor-pointer hover:underline"
+                      type="button"
+                      className="bg-transparent p-0 m-0 border-0 text-left w-full cursor-pointer hover:underline"
                       onClick={(e) => {
-                        e.preventDefault();
                         e.stopPropagation();
                         onSelect(card.wpId);
                       }}
@@ -178,7 +190,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
                       {card.dedup.method === 'p973' && card.dedup.qid
                         ? wikidataHits[card.dedup.qid]?.label ?? card.title
                         : card.title}
-                    </div>
+                    </button>
                   ))}
                   {group.artifacts.length > 8 && (
                     <div className="opacity-70">+{group.artifacts.length - 8} more</div>

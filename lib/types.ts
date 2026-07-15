@@ -61,6 +61,7 @@ export type QidSource =
   | 'compound'    // split into multiple properties (P31 + P136, etc.)
   | 'skip'        // do not generate a statement from this row
   | 'none'        // keep as free text, no QID
+  | 'wikidata'    // resolved directly from a Wikidata statement (read path)
   | '';
 
 export interface TagEntry {

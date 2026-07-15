@@ -1,0 +1,1640 @@
+{
+  "tables": [
+    {
+      "id": "tblczQyPF0U4wBfSY",
+      "name": "Artifacts",
+      "primaryFieldId": "fldkA4jDVTbjH9eBv",
+      "fields": [
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldkA4jDVTbjH9eBv",
+          "name": "wp_id"
+        },
+        { "type": "multilineText", "id": "fldy2WMSCUpWzaIJ5", "name": "slug" },
+        { "type": "multilineText", "id": "fldLO2UsPodHLDfrW", "name": "url" },
+        { "type": "multilineText", "id": "fldFabezr9fsa33fg", "name": "title" },
+        {
+          "type": "checkbox",
+          "options": { "icon": "check", "color": "greenBright" },
+          "id": "fldrfQNFeyz3RsneW",
+          "name": "weak_link"
+        },
+        { "type": "multilineText", "id": "fldbvsbahGVfLm8U0", "name": "what" },
+        { "type": "multilineText", "id": "fld3mayed2cnovonL", "name": "where" },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel8ZzRPo4xwFsVe2",
+                "name": "Features",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selbN4rIt3F1P5iJW",
+                "name": "Adornments &amp; jewelry | Said to belong to the queen",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "sel9Lt8FjGWvXvZYK",
+                "name": "Shields | Strong link to Maqdala",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selSR2DwticIdwLNe",
+                "name": "Clear link to Maqdala | Returned plunder | Shields",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selOCOEw0gNI08diL",
+                "name": "Clear link to Maqdala | Shields",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selfIPcpLiAuBv0gC",
+                "name": "Military | Said to belong to Tewodros | The Plunder | Weapons",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "selVU6qFLGyxZPOWk",
+                "name": "Military | Said to belong to Tewodros | Shields | Strong link to Maqdala | The Plunder",
+                "color": "redLight2"
+              },
+              {
+                "id": "selSYjagBYPyckZy7",
+                "name": "Miscellaneous | The Plunder",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "selUzbJa76sWrGSRM",
+                "name": "Magdala - Ethiopia",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selpwltKCClLXbSEC",
+                "name": "Crosses | Sacred artefacts | The Plunder",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selFS6GdOraT77MIN",
+                "name": "Royal regalia | Said to belong to the queen | The Plunder",
+                "color": "blueLight1"
+              },
+              {
+                "id": "selL77c16rDtvsTRZ",
+                "name": "Clothes &amp; ornaments | Miscellaneous | The Plunder",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "sel70cuEfvOqwaVv2",
+                "name": "Armour &amp; apparel | Military | The Plunder",
+                "color": "tealLight1"
+              },
+              {
+                "id": "selV5tkGb5jqSyMz5",
+                "name": "Military | Possible link to Maqdala | Shields | The Plunder",
+                "color": "greenLight1"
+              },
+              {
+                "id": "selsHGiOqB4k84nBO",
+                "name": "Miscellaneous | Said to belong to Tewodros | The Plunder",
+                "color": "yellowLight1"
+              },
+              {
+                "id": "selO3g8dXkcK6Vo9Z",
+                "name": "Manacles | The Plunder",
+                "color": "orangeLight1"
+              },
+              {
+                "id": "selwd2EXLP2uZzom6",
+                "name": "Images &amp; icons | Sacred artefacts | The Plunder",
+                "color": "redLight1"
+              },
+              {
+                "id": "selcKmPbSGQgOsZFb",
+                "name": "Sacred artefacts | The Plunder | Umbrella ornaments",
+                "color": "pinkLight1"
+              },
+              {
+                "id": "sel5JwgDDpbG3skLf",
+                "name": "Bishops crowns &amp; regalia | Sacred artefacts | The Plunder",
+                "color": "purpleLight1"
+              },
+              {
+                "id": "selP4J9AHzTfoyG3W",
+                "name": "Adornments &amp; jewelry | Royal regalia | The Plunder",
+                "color": "grayLight1"
+              },
+              {
+                "id": "selaU07DmOKWxu0fx",
+                "name": "Adornments &amp; jewelry | The Plunder",
+                "color": "blueBright"
+              },
+              {
+                "id": "selmYDdQTxo0ySFVY",
+                "name": "Drinking vessels | Royal regalia | The Plunder",
+                "color": "cyanBright"
+              },
+              {
+                "id": "selPoYii5JNIsdUFw",
+                "name": "Chalices &amp; vessels | Sacred artefacts | The Plunder",
+                "color": "tealBright"
+              },
+              {
+                "id": "selLj8DYNWHC2IjdS",
+                "name": "Censers &amp; sistrums | Sacred artefacts | The Plunder",
+                "color": "greenBright"
+              },
+              {
+                "id": "selHnvj4WFc873UbH",
+                "name": "Royal regalia | The Plunder | Victoria's robes",
+                "color": "yellowBright"
+              },
+              {
+                "id": "sel7rlBD2TpIOsctS",
+                "name": "Military | The Plunder | Weapons",
+                "color": "orangeBright"
+              },
+              {
+                "id": "selhTJjEyMoZ0yrWt",
+                "name": "Clothes &amp; ornaments | The Plunder",
+                "color": "redBright"
+              },
+              {
+                "id": "selLU4UtCQR27fYph",
+                "name": "Military | Shields | The Plunder",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selESRzUloTVhGrwu",
+                "name": "Horse tack | Military | The Plunder",
+                "color": "purpleBright"
+              },
+              {
+                "id": "selYmlQVMcLhZqARx",
+                "name": "The Plunder | Umbrella ornaments",
+                "color": "grayBright"
+              },
+              {
+                "id": "selCquC1j2zq6IV9F",
+                "name": "Hangings | Sacred artefacts | The Plunder",
+                "color": "blueDark1"
+              },
+              {
+                "id": "selagpJHcvHJPXHSq",
+                "name": "Royal regalia | Said to belong to the queen | The Plunder | Victoria's robes",
+                "color": "cyanDark1"
+              },
+              {
+                "id": "selfhDJ4Cw1dfiKwr",
+                "name": "Drinking vessels | Royal regalia | Said to belong to Tewodros | The Plunder",
+                "color": "tealDark1"
+              },
+              {
+                "id": "selxDBWW8x7e8ADwa",
+                "name": "Adornments &amp; jewelry | Royal regalia | Said to belong to the queen | The Plunder",
+                "color": "greenDark1"
+              },
+              {
+                "id": "sel6rCJhGgMplNAtD",
+                "name": "Military | Suspected Magdala plunder | The Plunder | Weapons",
+                "color": "yellowDark1"
+              },
+              {
+                "id": "selgb9ZVTvg5Jdnmb",
+                "name": "Military | Shields | Suspected Magdala plunder | The Plunder",
+                "color": "orangeDark1"
+              },
+              {
+                "id": "selWmOHDZCUbXqH4W",
+                "name": "Royal regalia | Said to belong to Tewodros | Tents | The Plunder",
+                "color": "redDark1"
+              },
+              {
+                "id": "selsrUGP2MT0zUvtZ",
+                "name": "Armour &amp; apparel | Military | Said to belong to Tewodros | The Plunder",
+                "color": "pinkDark1"
+              },
+              {
+                "id": "sel3vfjGwA7ZbgVMf",
+                "name": "Chalices &amp; vessels | Royal regalia | Sacred artefacts | Said to belong to Tewodros | The Plunder",
+                "color": "purpleDark1"
+              },
+              {
+                "id": "sel4r8Ltc9kqNAEZh",
+                "name": "Armour &amp; apparel | Clothes &amp; ornaments | Military | The Plunder",
+                "color": "grayDark1"
+              },
+              {
+                "id": "selvBkyyBa9H8TZyl",
+                "name": "Drinking vessels | Said to belong to Tewodros | The Plunder",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selO6XYu1WSuIDoJA",
+                "name": "Chalices &amp; vessels | Sacred artefacts | Said to belong to Tewodros | The Plunder",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selJyOJkmkr3duw5M",
+                "name": "Royal regalia | Said to belong to Tewodros | The Plunder",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selJDE3K27YAUTbsI",
+                "name": "Alemayehu's story",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selRf9OiHiPl5Nqwc",
+                "name": "Drums | Instruments | The Plunder",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selH4jBYYarHOycOb",
+                "name": "Sacred artefacts | Tabots | The Plunder",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "selPG6WbJJKAMRnqS",
+                "name": "Crowns | Royal regalia | Said to belong to Tewodros | The Plunder",
+                "color": "redLight2"
+              },
+              {
+                "id": "selwmKF0ThOjHSLDs",
+                "name": "Sacred artefacts | Suspected Magdala plunder | Tabots | The Plunder",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "selNRlGyURj1R6uoo",
+                "name": "Shields | The Plunder",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selyiLPGavvY5wUj2",
+                "name": "Banners | Military | The Plunder",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selRTTD69Dwt7biA1",
+                "name": "Crosses | Sacred artefacts",
+                "color": "blueLight1"
+              },
+              {
+                "id": "selwtYixPjcNt3UP0",
+                "name": "Drinking vessels | Miscellaneous | The Plunder",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "selQQzKkJV1t1VRKq",
+                "name": "Human remains | Said to belong to Tewodros | The Plunder",
+                "color": "tealLight1"
+              },
+              {
+                "id": "selhAiNxZJBiTP92M",
+                "name": "Manacles | Miscellaneous | The Plunder",
+                "color": "greenLight1"
+              },
+              {
+                "id": "selSz3yZM3dSrDIkO",
+                "name": "The Plunder | Unspecified",
+                "color": "yellowLight1"
+              },
+              {
+                "id": "selQ63f7JOL4Q9Vuo",
+                "name": "Returned plunder | Royal regalia | Said to belong to Tewodros",
+                "color": "orangeLight1"
+              },
+              {
+                "id": "selsKxtxhzG5d15vS",
+                "name": "News",
+                "color": "redLight1"
+              },
+              {
+                "id": "selzBqHk7pq8lO8ba",
+                "name": "Uncategorized",
+                "color": "pinkLight1"
+              },
+              {
+                "id": "selmUNocPd5Ww8xHF",
+                "name": "People | The Story",
+                "color": "purpleLight1"
+              },
+              {
+                "id": "selqxqT60cDS2e9k2",
+                "name": "Crosses | The Plunder",
+                "color": "grayLight1"
+              },
+              {
+                "id": "seld8iOVmOEieZTlQ",
+                "name": "Censers &amp; sistrums",
+                "color": "blueBright"
+              },
+              {
+                "id": "selsDsm0fC82wknBy",
+                "name": "Returned plunder | Said to belong to Tewodros",
+                "color": "cyanBright"
+              },
+              {
+                "id": "selz701RDiis1p0VU",
+                "name": "Crowns | Returned plunder | Royal regalia",
+                "color": "tealBright"
+              },
+              {
+                "id": "selBpYMVGUByTBZzo",
+                "name": "Returned plunder | Sacred artefacts | Tabots",
+                "color": "greenBright"
+              },
+              {
+                "id": "selkRowlmJLFOdxle",
+                "name": "Returned plunder | Shields",
+                "color": "yellowBright"
+              },
+              {
+                "id": "selDWye943h6PJdgN",
+                "name": "Weapons",
+                "color": "orangeBright"
+              },
+              {
+                "id": "selcybF4SHErUUteD",
+                "name": "Manacles",
+                "color": "redBright"
+              },
+              {
+                "id": "selwVmvPPSmJgMvtC",
+                "name": "Ammunition",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selPZXt8ruByS3K5W",
+                "name": "Whip",
+                "color": "purpleBright"
+              },
+              {
+                "id": "selaMa8hdcMtQdbU6",
+                "name": "Chalices &amp; vessels",
+                "color": "grayBright"
+              },
+              {
+                "id": "selaBE87sdQaGZwJh",
+                "name": "Crosses",
+                "color": "blueDark1"
+              },
+              {
+                "id": "selqotU1qbR1u6CdE",
+                "name": "Manuscripts | Prayers, psalms, hymns, services",
+                "color": "cyanDark1"
+              },
+              {
+                "id": "sel7k2QMEDTysfVRD",
+                "name": "Ecclesiastical &amp; theological | Manuscripts",
+                "color": "tealDark1"
+              },
+              {
+                "id": "selO2C1ArwVZJfDc3",
+                "name": "Biblical books | Manuscripts",
+                "color": "greenDark1"
+              },
+              {
+                "id": "sel7XyczcLzlt4B02",
+                "name": "Historical, legal, medical &amp; other | Manuscripts",
+                "color": "yellowDark1"
+              },
+              {
+                "id": "seluQOcZjw3DhaFZH",
+                "name": "Acts &amp; miracles of the saints | Biblical books | Ecclesiastical &amp; theological | Festivals &amp; miracles of Mary, Jesus &amp; the angels | Historical, legal, medical &amp; other | Letters | Manuscripts | Prayers, psalms, hymns, services",
+                "color": "orangeDark1"
+              },
+              {
+                "id": "selGod04ntOUXVZIX",
+                "name": "Ecclesiastical &amp; theological | Historical, legal, medical &amp; other | Manuscripts",
+                "color": "redDark1"
+              },
+              {
+                "id": "selyPOf11KKPFBmuX",
+                "name": "Ecclesiastical &amp; theological | Manuscripts | Prayers, psalms, hymns, services",
+                "color": "pinkDark1"
+              },
+              {
+                "id": "selM3sGADQxbfMDK3",
+                "name": "Acts &amp; miracles of the saints | Ecclesiastical &amp; theological | Manuscripts",
+                "color": "purpleDark1"
+              },
+              {
+                "id": "selc51ZSVOPO7ncxW",
+                "name": "Acts &amp; miracles of the saints | Manuscripts",
+                "color": "grayDark1"
+              },
+              {
+                "id": "selUF7KtAvRYQCHnC",
+                "name": "Festivals &amp; miracles of Mary, Jesus &amp; the angels | Manuscripts",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selYLDAmTilXZpdVC",
+                "name": "Biblical books",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "sel2gKZ8P5gWSJ0CW",
+                "name": "Manuscripts | Prayers, psalms, hymns, services | Said to belong to Tewodros",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selsLON0gx1I55vdP",
+                "name": "Scrolls | The Plunder",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selXlEpkrZ3fSlh3f",
+                "name": "Biblical books | Manuscripts | The Plunder",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selN9cYNBhnTtY4yv",
+                "name": "Letters | Manuscripts | The Plunder",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "selCqp23xbpr5dSFh",
+                "name": "Historical, legal, medical &amp; other | Manuscripts | The Plunder",
+                "color": "redLight2"
+              },
+              {
+                "id": "selSPlgcRlJuhJxwc",
+                "name": "Manuscripts | Scrolls | The Plunder",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "selMHKjQnVY95wUq3",
+                "name": "Manuscripts | Scrolls | Suspected Magdala plunder",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selgpd1Ev7wQBjc8T",
+                "name": "Biblical books | Manuscripts | Returned plunder",
+                "color": "grayLight2"
+              },
+              {
+                "id": "seloiqGnHh02e3Nt7",
+                "name": "Biblical books | Historical, legal, medical &amp; other | Manuscripts | The Plunder",
+                "color": "blueLight1"
+              },
+              {
+                "id": "selA1Fj7UFRwr7imo",
+                "name": "Manuscripts | Scrolls",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "selWU2Ad1Bj3N394k",
+                "name": "Biblical books | The Plunder",
+                "color": "tealLight1"
+              },
+              {
+                "id": "selwz7lNQEcDQMz82",
+                "name": "Acts &amp; miracles of the saints | Manuscripts | Prayers, psalms, hymns, services",
+                "color": "greenLight1"
+              },
+              {
+                "id": "selngHjj14OIf117w",
+                "name": "Biblical books | Manuscripts | Suspected Magdala plunder | The Plunder",
+                "color": "yellowLight1"
+              },
+              {
+                "id": "selANBMm2oVNTJW2A",
+                "name": "Acts &amp; miracles of the saints | Manuscripts | The Plunder",
+                "color": "orangeLight1"
+              },
+              {
+                "id": "sel0pO7nEuxiGQVyJ",
+                "name": "Letters | Manuscripts | Said to belong to Tewodros | The Plunder",
+                "color": "redLight1"
+              },
+              {
+                "id": "selBCDHtrEPJUyiKv",
+                "name": "Manuscripts | Scrolls | Suspected Magdala plunder | The Plunder",
+                "color": "pinkLight1"
+              },
+              {
+                "id": "selekJgM5j8XhCnJF",
+                "name": "Manuscripts | Unspecified",
+                "color": "purpleLight1"
+              },
+              {
+                "id": "sel6en4gYVGUdiDnC",
+                "name": "Loose pages | Manuscripts | Unspecified",
+                "color": "grayLight1"
+              },
+              {
+                "id": "selkZcOzJaVRVw3dH",
+                "name": "Festivals &amp; miracles of Mary, Jesus &amp; the angels | Loose pages | Manuscripts",
+                "color": "blueBright"
+              },
+              {
+                "id": "sely0FWqPLLaYgKTy",
+                "name": "Loose pages | Manuscripts",
+                "color": "cyanBright"
+              },
+              {
+                "id": "seladKa82hM49xmvI",
+                "name": "Manuscripts",
+                "color": "tealBright"
+              },
+              {
+                "id": "selLyPmlyISYAQEmK",
+                "name": "Military | Royal regalia | Said to belong to Tewodros | Shields | The Plunder",
+                "color": "greenBright"
+              },
+              {
+                "id": "sel9CenrexPHz0exz",
+                "name": "Robes | Royal regalia | The Plunder",
+                "color": "yellowBright"
+              },
+              {
+                "id": "selzF8lW5huFimZQI",
+                "name": "The Story",
+                "color": "orangeBright"
+              },
+              {
+                "id": "sel4kywhHJELMz9UQ",
+                "name": "Royal regalia | Tents",
+                "color": "redBright"
+              },
+              {
+                "id": "selDdGUUUCXgSZdCm",
+                "name": "Royal regalia | Tents | The Plunder",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selttMuqoL2EYgrR8",
+                "name": "Acts &amp; miracles of the saints | Biblical books | Manuscripts | Prayers, psalms, hymns, services | The Plunder",
+                "color": "purpleBright"
+              },
+              {
+                "id": "seloUhAJBvshj99Iz",
+                "name": "Scrolls | Suspected Magdala plunder",
+                "color": "grayBright"
+              },
+              {
+                "id": "selncubdeBZqjspwY",
+                "name": "Gunpowder holders | Military | The Plunder",
+                "color": "blueDark1"
+              },
+              {
+                "id": "selaxHPmms3gO1P2Z",
+                "name": "Miscellaneous | Possible gifts | Suspected Magdala plunder | The Plunder",
+                "color": "cyanDark1"
+              },
+              {
+                "id": "sel9sUQi5T3fhsVv3",
+                "name": "Drinking vessels | Miscellaneous | Royal regalia | Said to belong to Tewodros | The Plunder",
+                "color": "tealDark1"
+              },
+              {
+                "id": "selae3zw2EC3PxW2K",
+                "name": "Discs | Sacred artefacts | The Plunder",
+                "color": "greenDark1"
+              },
+              {
+                "id": "sel4FoH9pDODb2g2d",
+                "name": "Robes | Royal regalia | Said to belong to Tewodros",
+                "color": "yellowDark1"
+              },
+              {
+                "id": "selPlqV8o5fVBEjHu",
+                "name": "Manuscripts | Prayers, psalms, hymns, services | Said to belong to the queen",
+                "color": "orangeDark1"
+              },
+              {
+                "id": "selZ6AzISkoxOZNg8",
+                "name": "Adornments &amp; jewelry | Alamayu's possessions | Royal regalia | The Plunder",
+                "color": "redDark1"
+              },
+              {
+                "id": "selyjM2CYjKx12nWK",
+                "name": "Dresses &amp; shawls | Royal regalia | Said to belong to the queen | The Plunder",
+                "color": "pinkDark1"
+              },
+              {
+                "id": "sel487vDuMc6A6vif",
+                "name": "Armour &amp; apparel | Military",
+                "color": "purpleDark1"
+              },
+              {
+                "id": "sel7ZerKrSLqkBYpZ",
+                "name": "Clothes &amp; ornaments | Miscellaneous | Suspected Magdala plunder",
+                "color": "grayDark1"
+              },
+              {
+                "id": "selDDJrC6TcEjpE4R",
+                "name": "Drinking vessels | Miscellaneous | Suspected Magdala plunder",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selbtwPApUCbTdook",
+                "name": "Military | Weapons",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "sel0yflEIYB17kKhU",
+                "name": "Royal regalia | Said to belong to the queen",
+                "color": "tealLight2"
+              },
+              {
+                "id": "sel4gT4TuxledWCw0",
+                "name": "Manacles | Miscellaneous",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selut7tRTV51Dvrls",
+                "name": "Loose pages | Manuscripts | Scrolls | Suspected Magdala plunder",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selBSNaj1QCxlMzsi",
+                "name": "Ammunition | Military",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "sel5bEevBnyG4wSX4",
+                "name": "Manuscripts | Suspected Magdala plunder | Unspecified",
+                "color": "redLight2"
+              },
+              {
+                "id": "sel6igZsfTPsqXMOY",
+                "name": "Archaeology",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "selvuBi9pC29S79lS",
+                "name": "Archaeology | The Plunder",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selSj64MC5NuAekQo",
+                "name": "Bishops crowns &amp; regalia | Miscellaneous | The Plunder",
+                "color": "grayLight2"
+              },
+              {
+                "id": "seldscketaZvzBrTY",
+                "name": "Miscellaneous | Possible gifts | The Plunder",
+                "color": "blueLight1"
+              },
+              {
+                "id": "sel4FH313bj38uIZe",
+                "name": "Dresses &amp; shawls | Royal regalia | Said to belong to the queen",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "selKC1lTSRvK4vehs",
+                "name": "category_names",
+                "color": "blueLight2"
+              }
+            ]
+          },
+          "id": "fldJA11zUrNN9203y",
+          "name": "category_names"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tbl5Svzkc7cRIU7iD",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "flduJw3WpD8ub5fnd"
+          },
+          "id": "fldzKPnFLRUni0B8E",
+          "name": "Museum Link"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fldzKPnFLRUni0B8E",
+            "fieldIdInLinkedTable": "fldyvzDtkIlay3BBz",
+            "result": { "type": "aiText", "options": {} }
+          },
+          "id": "fldU70IVvIpGpI1jv",
+          "name": "locations"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldHqT0tyEKdr2vi5",
+          "name": "source_links"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld4XUcvfRNxdeit9",
+          "name": "image_urls"
+        },
+        {
+          "type": "dateTime",
+          "options": {
+            "dateFormat": { "name": "iso", "format": "YYYY-MM-DD" },
+            "timeFormat": { "name": "24hour", "format": "HH:mm" },
+            "timeZone": "utc"
+          },
+          "id": "fldMJznA611D80xaT",
+          "name": "date_published"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel2Jq0xBlhcFdqn6",
+                "name": "tag_names",
+                "color": "blueLight2"
+              },
+              {
+                "id": "seld0HbDeLEKPMZFg",
+                "name": "Unnamed buyer",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selEnAdX9MmRN9dwA",
+                "name": "Unknown",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selCrI4Sj3QBIs0dl",
+                "name": "National Museum of Ethiopia",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selV45qmVWUlLAk4B",
+                "name": "The Highlanders’ Museum - Inverness",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selQTVm7uIWEzDYKK",
+                "name": "Royal Armouries Collection",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "selLQbGf4rmF10GTc",
+                "name": "British Museum",
+                "color": "redLight2"
+              },
+              {
+                "id": "selvmr1BisXu3qVlo",
+                "name": "National Army Museum - London",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "sel7DsurHG7IzGLT6",
+                "name": "Cambridge Museum of Archaeology and Anthropology",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selIbwus0GpJl5MGq",
+                "name": "National Museums of Scotland",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selsTMzmiu6Yz2ZjF",
+                "name": "Pitt Rivers Museum - Oxford",
+                "color": "blueLight1"
+              },
+              {
+                "id": "selexVMIpdcrlRE9a",
+                "name": "Victoria &amp; Albert Museum - London",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "selivZfrZpRntcDvq",
+                "name": "The King's Own Royal Regiment Museum - Lancaster",
+                "color": "tealLight1"
+              },
+              {
+                "id": "selptHujTZjNJv7Np",
+                "name": "National War Museum Scotland",
+                "color": "greenLight1"
+              },
+              {
+                "id": "selqWKS3cEEGwu4GV",
+                "name": "Duke of Wellington's Regimental Museum",
+                "color": "yellowLight1"
+              },
+              {
+                "id": "selporMVtbMB4zUyv",
+                "name": "Lancaster Priory",
+                "color": "orangeLight1"
+              },
+              {
+                "id": "sel9s9noHRfWz6vTY",
+                "name": "The Royal Scots Dragoon Guards",
+                "color": "redLight1"
+              },
+              {
+                "id": "selPJqYwSagGNny5q",
+                "name": "Royal Engineers Museum",
+                "color": "pinkLight1"
+              },
+              {
+                "id": "selkGCVq9kx9TiDIy",
+                "name": "Westminster Abbey",
+                "color": "purpleLight1"
+              },
+              {
+                "id": "selNygxqtG1X3039x",
+                "name": "Britain's Royal Collection",
+                "color": "grayLight1"
+              },
+              {
+                "id": "selTuwG4byMRKJo4B",
+                "name": "Royal Ontario Museum",
+                "color": "blueBright"
+              },
+              {
+                "id": "selN0b6yEqLBPpv9W",
+                "name": "Ethnological Museum - Berlin",
+                "color": "cyanBright"
+              },
+              {
+                "id": "selSyjF8IivWGuRgx",
+                "name": "National Museum of Ireland",
+                "color": "tealBright"
+              },
+              {
+                "id": "selGP3Sq69cEv1lrU",
+                "name": "Returned plunder",
+                "color": "greenBright"
+              },
+              {
+                "id": "selsAevVhVMgys26k",
+                "name": "Horniman Museum - London",
+                "color": "yellowBright"
+              },
+              {
+                "id": "sel931mMj32cQ3DHJ",
+                "name": "The Cameronians Regimental Museum - Hamilton",
+                "color": "orangeBright"
+              },
+              {
+                "id": "selpV011aPItuqw4y",
+                "name": "Cambridge University Library",
+                "color": "redBright"
+              },
+              {
+                "id": "sel8SrM0tiXdlNIwe",
+                "name": "British Library",
+                "color": "pinkBright"
+              },
+              {
+                "id": "seldtsYKY3GsMltPi",
+                "name": "National Library of Scotland",
+                "color": "purpleBright"
+              },
+              {
+                "id": "selMa9MLlZMNrWH6z",
+                "name": "John Rylands Library - Manchester",
+                "color": "grayBright"
+              },
+              {
+                "id": "selS0zirP9KCxJczS",
+                "name": "The Smithsonian",
+                "color": "blueDark1"
+              },
+              {
+                "id": "selJIeZT0aba5JLyS",
+                "name": "Perth Museum &amp; Art Gallery",
+                "color": "cyanDark1"
+              },
+              {
+                "id": "selUeUFxHWIsiAop7",
+                "name": "Afrika Museum - The Netherlands",
+                "color": "tealDark1"
+              },
+              {
+                "id": "selkiE3tOEUbkrv6q",
+                "name": "Austrian National Library",
+                "color": "greenDark1"
+              },
+              {
+                "id": "selE1IpiEy3MQUvKB",
+                "name": "Berlin State Library",
+                "color": "yellowDark1"
+              },
+              {
+                "id": "sele3GVzXuZn1PvtY",
+                "name": "Bonn University Library - Bonn",
+                "color": "orangeDark1"
+              },
+              {
+                "id": "selO92MiFE8mJHy5s",
+                "name": "Boston College Law Library - Boston",
+                "color": "redDark1"
+              },
+              {
+                "id": "selFIJt8aESZNQpiN",
+                "name": "Trinity College Library - Dublin",
+                "color": "pinkDark1"
+              },
+              {
+                "id": "sel0UMDFEVAHLz09x",
+                "name": "Chester Beatty Library - Dublin",
+                "color": "purpleDark1"
+              },
+              {
+                "id": "selWUQ9y1ORv1R4Wt",
+                "name": "Princeton University Library",
+                "color": "grayDark1"
+              },
+              {
+                "id": "selchyZMvIYyDzXq7",
+                "name": "Edinburgh University Library",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selJT3KiP8doOnkym",
+                "name": "Bodleian Library - Oxford",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "seldCdpP5LUR2je9p",
+                "name": "Cuming Museum - London",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selELt7EIqtn3tuDa",
+                "name": "Wellcome Collection - London",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selBTLUQQ3vYyj4uZ",
+                "name": "National Archives of Scotland",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "sellNkwIRk2k56zWu",
+                "name": "University of Dundee Museum",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "selYQURWeSTiF5Dbl",
+                "name": "Leiden University Libraries",
+                "color": "redLight2"
+              },
+              {
+                "id": "sel4FbRoTCiVL4haz",
+                "name": "A bank vault in Portugal",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "seltNdoIyGiaOGqXb",
+                "name": "Hughenden - National Trust",
+                "color": "purpleLight2"
+              },
+              {
+                "id": "selvJRaAyPzJSqs8m",
+                "name": "UCLA Library - Los Angeles",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selXByjaEw7V3NWrT",
+                "name": "Bibliothèque nationale de France - Paris",
+                "color": "blueLight1"
+              }
+            ]
+          },
+          "id": "fldgi3qEHoGFxizy0",
+          "name": "tag_names"
+        },
+        {
+          "type": "multipleLookupValues",
+          "options": {
+            "isValid": true,
+            "recordLinkFieldId": "fldzKPnFLRUni0B8E",
+            "fieldIdInLinkedTable": "fldEfA8i6u85sC7LG",
+            "result": { "type": "singleLineText" }
+          },
+          "id": "fldVymcT63jMm7FOn",
+          "name": "tag_names copy"
+        }
+      ],
+      "views": [
+        { "id": "viwCYOp3qcJu8Y237", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tbl5Svzkc7cRIU7iD",
+      "name": "Museums",
+      "description": "Centralizes key info and links for each museum in your collection.",
+      "primaryFieldId": "fldEfA8i6u85sC7LG",
+      "fields": [
+        { "type": "singleLineText", "id": "fldEfA8i6u85sC7LG", "name": "name" },
+        {
+          "type": "aiText",
+          "options": {
+            "referencedFieldIds": ["fldEfA8i6u85sC7LG"],
+            "prompt": [
+              "You are an experienced research assistant skilled at finding accurate and up-to-date location information for cultural institutions, specifically museums. Respond with a precise, professional, and concise tone.\n\nTask description:\nSearch the internet for the current and official location of the specified museum, focusing on its street address and/or city and country. Cross-check sources to ensure accuracy, prioritizing official museum sites, reputable directories, and government tourism pages. Return only the physical location details, avoiding any extraneous information or directions.\n\nOutput format:\nOutput the museum's physical address or, if not available, the best-identified city and country. Do not include any additional commentary or context. For example: \"Rue de Rivoli, 75001 Paris, France\" or \"Amsterdam, Netherlands\". Output the most complete and specific address available.\nIf you are unable to find the location, output: \"Location not found\".\n\nContext and Data:\nMuseum Name: ",
+              { "field": { "fieldId": "fldEfA8i6u85sC7LG" } },
+              "\n\nOutput:\n"
+            ]
+          },
+          "id": "fldyvzDtkIlay3BBz",
+          "name": "location"
+        },
+        {
+          "type": "aiText",
+          "options": {
+            "referencedFieldIds": ["fldEfA8i6u85sC7LG"],
+            "prompt": [
+              "You are an efficient online researcher specializing in finding official websites for cultural institutions, particularly museums. Respond in a professional, direct, and clear style.\n\nTask description:\nSearch the internet for the official website URL of the specified museum. Give priority to official domains and ensure that the link is current and authoritative. Double-check for potential duplicates, unofficial listings, or third-party sites and exclude them from consideration.\n\nOutput format:\nOutput only the official website URL as a plain text string. Do not include any additional text or formatting. For example: \"https://www.louvre.fr/\". If no official website is found, output: \"URL not found\".\nOutput only the main website, not any subpages or social media links.\n\nContext and Data:\nMuseum Name: ",
+              { "field": { "fieldId": "fldEfA8i6u85sC7LG" } },
+              "\n\nOutput:\n"
+            ]
+          },
+          "id": "fldkuarGKQpA48wcw",
+          "name": "url"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldtascBixgbvXjiW",
+          "name": "Artifacts"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld8taSoLHS2jbFe6",
+          "name": "Artifacts 2"
+        },
+        {
+          "type": "multipleRecordLinks",
+          "options": {
+            "linkedTableId": "tblczQyPF0U4wBfSY",
+            "isReversed": false,
+            "prefersSingleRecordLink": false,
+            "inverseLinkFieldId": "fldzKPnFLRUni0B8E"
+          },
+          "id": "flduJw3WpD8ub5fnd",
+          "name": "Artifacts 3"
+        },
+        {
+          "type": "aiText",
+          "options": {
+            "referencedFieldIds": ["fldEfA8i6u85sC7LG", "fldyvzDtkIlay3BBz"],
+            "prompt": [
+              "Looking the ",
+              { "field": { "fieldId": "fldEfA8i6u85sC7LG" } },
+              " and country specified  in ",
+              { "field": { "fieldId": "fldyvzDtkIlay3BBz" } },
+              " field, generate the coordinates of the museum. Don't return any other text except the coordintates\n"
+            ]
+          },
+          "id": "fldjiyQhYXFy1Z3hR",
+          "name": "coordiniates"
+        }
+      ],
+      "views": [
+        { "id": "viwP1AIaa8qtl5Ww3", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tblNUUgk2jMn43OXz",
+      "name": "Wikidata Items",
+      "primaryFieldId": "fld1OKpDECZqZLqDW",
+      "fields": [
+        { "type": "multilineText", "id": "fld1OKpDECZqZLqDW", "name": "item" },
+        {
+          "type": "multilineText",
+          "id": "fldkMrbKzBmnfQgBA",
+          "name": "itemLabel"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldLdUBLVeFHQ5BbO",
+          "name": "itemDescription"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld6JzQmVMge2Gi9k",
+          "name": "instance_of"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldVJ9kNuTWlRKCj4",
+          "name": "collection_P195"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              { "id": "selJtIFn3WBl63egh", "name": "", "color": "blueLight2" },
+              {
+                "id": "selG1JFuEEY4yYGHB",
+                "name": "Kamerun",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "sel50oqYf38PUhmdy",
+                "name": "Dagbon|Ghana",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selpN7CKyami4WJXe",
+                "name": "Cameroon",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selzo47ZoZNT4KOOD",
+                "name": "history of Ptolemaic Egypt",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "seleZ33S99VqySkjN",
+                "name": "country_of_origin_P495",
+                "color": "blueLight2"
+              }
+            ]
+          },
+          "id": "fldjEJTOnwXy7TocK",
+          "name": "country_of_origin_P495"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld4okoodaB6kEx9T",
+          "name": "creator_P170"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldYTvXBGBS5cY3pP",
+          "name": "material_P186"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldDHyBbino6JLOtJ",
+          "name": "inception_P571"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld0Y3jOHNJlVESvf",
+          "name": "location_P276"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldYgqeYSaXTa4YE7",
+          "name": "part_of_P361"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldDDdfqUCvO8twVK",
+          "name": "inventory_no_P217"
+        },
+        {
+          "type": "aiText",
+          "options": {
+            "referencedFieldIds": ["fldkMrbKzBmnfQgBA"],
+            "prompt": [
+              "You are an intelligent matching assistant specializing in cross-table record checks for cultural heritage databases. Maintain a professional and neutral tone in your response.\n\nTask description:\nDetermine whether the given item is present in the Artifacts table by comparing the value exactly against titles in the Artifacts table, based solely on the data provided. If there is an exact match, indicate presence; if not, indicate absence.\n\nOutput format:\nOutput either \"Yes\" if an exact match is found or \"No\" if not. Do not include any additional explanation or text. If you are unable to determine presence due to missing input data, output \"Cannot determine\". Example output: Yes\n\nContext and Data:\nItem Label: ",
+              { "field": { "fieldId": "fldkMrbKzBmnfQgBA" } },
+              "\n\nOutput:\n"
+            ]
+          },
+          "id": "fldSRVhkGZw6WWad3",
+          "name": "Present in Artifacts Table"
+        }
+      ],
+      "views": [
+        { "id": "viwEMh67PIm6qY8pI", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tblhB4XV7joN5NgjL",
+      "name": "Wikidata Tags",
+      "primaryFieldId": "fldGTPEHsAyFvcBss",
+      "fields": [
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldGTPEHsAyFvcBss",
+          "name": " wp_id"
+        },
+        { "type": "multilineText", "id": "fldVzllxSGUYerHcx", "name": "qid" },
+        {
+          "type": "multilineText",
+          "id": "fldPw7ScqXsP2eyS1",
+          "name": "qid copy"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selhcCWjc3Mv2qfuS",
+                "name": "Pending Review",
+                "color": "blueLight2"
+              },
+              {
+                "id": "seldYtME0q1ZaBQwk",
+                "name": "Verified - Original Correct",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selQPMkYT6auQFFh5",
+                "name": "Verified - Alt1 Used",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selV2ZxiCjNRPrlGj",
+                "name": "Verified - Alt2 Used",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selDXWXHyWNJlNmGR",
+                "name": "Verified - Manual Entry",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "selAkhBu1OYWW0JG2",
+                "name": "Needs Research",
+                "color": "orangeLight2"
+              }
+            ]
+          },
+          "id": "fldBv4DldZ46trRHT",
+          "name": "Verification Status"
+        },
+        { "type": "multilineText", "id": "fld7NK8o7uunqEd5m", "name": "name" },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldRqDeUenX1aGKqq",
+          "name": "count"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selDB3yevwEiWus7A",
+                "name": "none",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selWr2fwfau2cOUef",
+                "name": "proposed",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "seleFGuQGwf36uaQx",
+                "name": "seed",
+                "color": "tealLight2"
+              },
+              {
+                "id": "seltC2JrZW24TeD3H",
+                "name": "skip",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selH0saknyHLGxs7R",
+                "name": "special",
+                "color": "yellowLight2"
+              }
+            ]
+          },
+          "id": "fldfsizwsDgrSj9Xs",
+          "name": "source"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldANpddK4EyCvT4Y",
+          "name": "match_label"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld1nIA875smadjQT",
+          "name": "match_desc"
+        },
+        { "type": "multilineText", "id": "fldKSRHHOaufZuEgt", "name": "alt1" },
+        { "type": "multilineText", "id": "fldZm6ymTwxTRSTvu", "name": "alt2" }
+      ],
+      "views": [
+        { "id": "viwyzCGsSNlFBRJ4Z", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tbl84ZozHDzN85i5I",
+      "name": "Wikidata Categories",
+      "primaryFieldId": "fldRAibTrz4H44jr2",
+      "fields": [
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldRAibTrz4H44jr2",
+          "name": " wp_id"
+        },
+        { "type": "multilineText", "id": "fldeVXFjrKv9DYHeG", "name": "name" },
+        { "type": "multilineText", "id": "fldgUD4iHuPN8la8N", "name": "count" },
+        { "type": "multilineText", "id": "fldAEcgryKW0qF6Wu", "name": "qid" },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selA2CgJVUsii0nPA",
+                "name": "compound",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selKZFKdEmqpm5Cd7",
+                "name": "qualifier",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selswk7UCQprxFy5H",
+                "name": "skip",
+                "color": "tealLight2"
+              },
+              {
+                "id": "selA9NmojM3Bu2Bph",
+                "name": "proposed",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selyj1uxc5ObrXZ8X",
+                "name": "special",
+                "color": "yellowLight2"
+              }
+            ]
+          },
+          "id": "fldQMmhnzer3xcJwH",
+          "name": "source"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldKHVL7WGZ9c2S92",
+          "name": "match_label"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldxCYAHWhLB4FAeC",
+          "name": "match_desc"
+        },
+        { "type": "multilineText", "id": "fldAkaNF35TEjC9Os", "name": "alt1" },
+        { "type": "multilineText", "id": "fldglNbUnjD5Jmm0W", "name": "alt2" },
+        {
+          "type": "aiText",
+          "options": {
+            "referencedFieldIds": [
+              "fldeVXFjrKv9DYHeG",
+              "fldQMmhnzer3xcJwH",
+              "fldKHVL7WGZ9c2S92"
+            ],
+            "prompt": [
+              "You are finding the correct Wikidata Q-ID for an artifact category used in an Ethiopian looted-artifacts database.\n\nInput:\n Name:   ",
+              { "field": { "fieldId": "fldeVXFjrKv9DYHeG" } },
+              "\n Source note:  ",
+              { "field": { "fieldId": "fldQMmhnzer3xcJwH" } },
+              "\n Match label:  ",
+              { "field": { "fieldId": "fldKHVL7WGZ9c2S92" } },
+              "\n\n\nSTEP 1 — SKIP CHECK:\nIf source is \"skip\", \"qualifier\", \"compound\", or \"special\", output exactly:\n Skip - Not Applicable\nThen stop.\n\nSTEP 2 — ALREADY VERIFIED:\nIf Current QID is not empty AND match_label does not say \"(no non-junk hit)\", output exactly:\n {{qid}}\nThen stop.\n\nSTEP 3 — SEARCH FOR QID:\nCurrent QID is empty or unverified. Search the web for the correct Wikidata item.\n\nSearch query: `{name} Wikidata artifact type`\n\n- Look for a Wikidata item (wikidata.org/wiki/Q...) whose label and description match the artifact type described by \"{name}\"\n- The correct item must be a physical object type, material culture concept, or artifact category\n- Reject items that are: people, places, films, songs, bands, disambiguation pages, or non-artifact concepts\n- If multiple candidates exist, prefer the most general/canonical concept item\n\nIf a confident match is found, output ONLY the QID in this exact format:\n Q######\n\nIf no confident match exists, output exactly:\n Needs Manual Review\n"
+            ]
+          },
+          "id": "fldk2XdnOyLot1sMj",
+          "name": "actual_qid"
+        }
+      ],
+      "views": [
+        { "id": "viwtDfCGy9Oo4ADwU", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tblF0l6jHFvg9sp6u",
+      "name": "Editors",
+      "primaryFieldId": "fldKm7er67xfRbd1W",
+      "fields": [
+        {
+          "type": "multilineText",
+          "id": "fldKm7er67xfRbd1W",
+          "name": "username"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldW8EgCceF9C1fQG",
+          "name": "global_id"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld37rFZwMt3MSANU",
+          "name": "enrollment_timestamp"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldQ3NTJd9MnyrSiP",
+          "name": "registered_at"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldxy3IXrSXfHfS11",
+          "name": "revisions_during_project"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldTqrAElY5dXpmUu",
+          "name": "mainspace_bytes_added"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldYrA2yVy4fRkEmc",
+          "name": "userspace_bytes_added"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldjSlamWkb5eYIUi",
+          "name": "draft_space_bytes_added"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldlpA5kdxL9bwEe4",
+          "name": "references_added"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldXNDMQOdwLkoURH",
+          "name": "registered_during_project"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldpiJ1MTqiXYYGdW",
+          "name": "total_articles_edited"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldtTQ1dxd5ufJdDQ",
+          "name": "completed_training_modules_count"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldccMsdNoDO6bVxD",
+          "name": "assigned_training_modules_count"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldQZdYtSonzZIZ4L",
+          "name": "completed_training_modules"
+        }
+      ],
+      "views": [
+        { "id": "viw0535bH8pZRF8NB", "name": "Grid view", "type": "grid" }
+      ]
+    },
+    {
+      "id": "tblfYnGYDyCy49z8O",
+      "name": "Contributions",
+      "primaryFieldId": "fldrhGCs5TDLWUzBJ",
+      "fields": [
+        { "type": "multilineText", "id": "fldrhGCs5TDLWUzBJ", "name": "ID" },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selQLWrZfZoxoJ62C",
+                "name": "Khajitdadddy",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selTu0J4c1vUxzh4U",
+                "name": "TheWikiCraft",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selF2aAWtDqc10K2h",
+                "name": "Wiki-ethio",
+                "color": "blueLight2"
+              },
+              {
+                "id": "sel1G7ALUB7UMPtCO",
+                "name": "Rekssw",
+                "color": "cyanLight2"
+              },
+              {
+                "id": "selnjoqHyzornxbFN",
+                "name": "Estif251",
+                "color": "tealLight2"
+              },
+              {
+                "id": "sel0Tx4nRW4xJfRf6",
+                "name": "Terepeza",
+                "color": "greenLight2"
+              },
+              {
+                "id": "seleziLqQtRH7VWxK",
+                "name": "Biggus Diccus",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "seluD38w2hGLG7iZE",
+                "name": "Eldahhh",
+                "color": "orangeLight2"
+              },
+              {
+                "id": "sel8e5QvnfWDD89x2",
+                "name": "Dagmawi-M",
+                "color": "redLight2"
+              },
+              {
+                "id": "selMNDmtv4bLgMAwd",
+                "name": "Wanderlust et",
+                "color": "pinkLight2"
+              },
+              {
+                "id": "sel1kWAVBwLs1LFai",
+                "name": "Miklol.G",
+                "color": "purpleLight2"
+              }
+            ]
+          },
+          "id": "fldwDQ3kWe51ph478",
+          "name": "usernames"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selAqv2C24xqjE2w1",
+                "name": "en.wikipedia.org",
+                "color": "blueLight2"
+              },
+              {
+                "id": "selwoyUODQSQWajih",
+                "name": "wikidata.org",
+                "color": "cyanLight2"
+              }
+            ]
+          },
+          "id": "fldKVvz78Lfzz4KmC",
+          "name": "wiki"
+        },
+        { "type": "multilineText", "id": "fldIBJXNyQymDTJtc", "name": "url" },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selGxu8K0ehfUsy9x",
+                "name": "start",
+                "color": "blueLight2"
+              },
+              { "id": "selCqIVIlL3hua4Hy", "name": "", "color": "cyanLight2" },
+              { "id": "selDshPo0TKdtEBVo", "name": "c", "color": "tealLight2" }
+            ]
+          },
+          "id": "fldf2QEt9trBUlKhU",
+          "name": "rating"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fld22MHrhfbvPzqLb",
+          "name": "namespace"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldveoSquMOVxXSOA",
+          "name": "edit_count"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldsUh3QPMxDcEVIe",
+          "name": "characters_added"
+        },
+        {
+          "type": "number",
+          "options": { "precision": 0 },
+          "id": "fldCFoNXI8oLDTMZW",
+          "name": "references_added"
+        },
+        { "type": "multilineText", "id": "fldkFS6jUJPuaQnof", "name": "new" },
+        {
+          "type": "multilineText",
+          "id": "fldKDH8tU2jWTte03",
+          "name": "deleted"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldE42zV6E2nhu1fS",
+          "name": "pageviews_link"
+        }
+      ],
+      "views": [
+        { "id": "viws7DvRuXdTM0VII", "name": "Grid view", "type": "grid" }
+      ]
+    }
+  ]
+}

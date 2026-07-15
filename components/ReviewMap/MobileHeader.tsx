@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function MobileHeader({ previewTitle, onToggleMenu, onOpenDetails, onNext, onPrev }: {
   previewTitle: string | null;
   onToggleMenu: () => void;
@@ -20,6 +22,12 @@ export default function MobileHeader({ previewTitle, onToggleMenu, onOpenDetails
       </h1>
 
       <div className="flex items-center gap-2">
+        <Link
+          href="/library"
+          className="rounded border border-gold/60 bg-gold px-3 py-1 text-sm font-semibold text-navy hover:bg-gold-light"
+        >
+          View library
+        </Link>
         <button
           type="button"
           onClick={onOpenDetails}
