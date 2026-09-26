@@ -55,6 +55,11 @@ export function labelForSourceUrl(url: string): string {
 
 export const UNKNOWN_HOLDER = 'Unknown / Unresolved';
 
+/** The key an artifact is grouped under in the holders list. */
+export function holderKeyOf(card: ArtifactCard): string {
+  return card.holder?.name ?? UNKNOWN_HOLDER;
+}
+
 const RETURNED_CATEGORY_PATTERN = /returned\s+plunder/i;
 const ETHIOPIA_HOLDER_PATTERN = /national\s+museum\s+of\s+ethiopia/i;
 

@@ -4,11 +4,13 @@ import { UNKNOWN_HOLDER } from './reviewMapUtils';
 import { useVisibleArtifacts } from './useVisibleArtifacts';
 import { useMuseumFilter } from './useMuseumFilter';
 import { useArtifactNav } from './useArtifactNav';
+import type { LayoutMode } from './useLayoutMode';
 
 export function useReviewMapState(
   artifacts: ArtifactCard[],
   wikidataHits: Record<string, ReviewWikidataHit>,
   initialSelectedWpId: string | null = null,
+  mode: LayoutMode | null = null,
 ) {
   const {
     visibleArtifacts,
@@ -20,7 +22,7 @@ export function useReviewMapState(
   } = useVisibleArtifacts(artifacts, initialSelectedWpId);
   const { selectedMuseum, setSelectedMuseum, museumGroups, filteredArtifacts, focusedCoords } =
     useMuseumFilter(visibleArtifacts);
-  const nav = useArtifactNav(filteredArtifacts, initialSelectedWpId);
+  const nav = useArtifactNav(filteredArtifacts, initialSelectedWpId, mode);
 
   const handleSelectMuseum = (name: string | null) => {
     setSelectedMuseum(name);

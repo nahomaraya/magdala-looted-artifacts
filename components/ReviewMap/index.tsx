@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewMapState } from './useReviewMapState';
+import { useLayoutMode } from './useLayoutMode';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 import { ArtifactPane } from '../Artifact';
@@ -22,15 +24,12 @@ interface Props {
 }
 
 export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
+  const mode = useLayoutMode();
   const {
     selectedWpId,
     setSelectedWpId,
     selectedMuseum,
     setSelectedMuseum,
-    mobileMenuOpen,
-    setMobileMenuOpen,
-    mobileDetailsOpen,
-    setMobileDetailsOpen,
     museumGroups,
     visibleArtifacts,
     filteredArtifacts,
@@ -52,7 +51,9 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
     takenFromLabel,
     currentLocationLabel,
     responsibleLabel,
-  } = useReviewMapState(artifacts, wikidataHits, initialSelectedWpId);
+  } = useReviewMapState(artifacts, wikidataHits, initialSelectedWpId, mode);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-navy flex-col md:flex-row">
