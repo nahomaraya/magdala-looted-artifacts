@@ -1,8 +1,8 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo } from 'react';
-import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
+import { useEffect, useMemo, useRef } from 'react';
+import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { MAGDALA_COORDS, ADDIS_ABABA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
@@ -28,6 +28,11 @@ interface Props {
   /** When set, the map flies to these coordinates instead of fitting bounds
    *  around Magdala + the selected artifact. Used by the holder rail. */
   focusCoords?: [number, number] | null;
+  /** Compact (sheet) layout: no tooltips or zoom buttons; taps go to onMarkerTap. */
+  compact?: boolean;
+  onMarkerTap?: (artifacts: ArtifactCard[]) => void;
+  /** Pixels at the bottom of the map covered by the mobile sheet. */
+  bottomInset?: number;
 }
 
 interface GroupedLocation {
@@ -77,25 +82,49 @@ function ReviewMapController({
   artifacts,
   selectedWpId,
   focusCoords,
+  bottomInset = 0,
 }: {
   artifacts: ArtifactCard[];
   selectedWpId: string | null;
   focusCoords?: [number, number] | null;
+  bottomInset?: number;
 }) {
   const map = useMap();
   // Deps need a stable signature, otherwise a new array literal would re-fire
   // the effect on every parent render.
   const focusKey = focusCoords ? `${focusCoords[0]},${focusCoords[1]}` : '';
 
+  // Read at fly time rather than depended on: dragging the sheet must not
+  // re-fly the camera. Declared before the camera effect so a commit that
+  // changes both the inset and the target flies with the new inset.
+  const insetRef = useRef(bottomInset);
   useEffect(() => {
+    insetRef.current = bottomInset;
+  }, [bottomInset]);
+
+  // The artifact pane can collapse without a window resize; Leaflet only
+  // re-measures on window resize, so watch the container itself.
+  useEffect(() => {
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [map]);
+
+  useEffect(() => {
+    const inset = insetRef.current;
+    // Shift a fly-to centre down by half the hidden strip, so the target
+    // lands in the middle of the visible map rather than behind the sheet.
+    const visibleCenter = (coords: L.LatLngExpression, zoom: number) =>
+      inset ? map.unproject(map.project(coords, zoom).add([0, inset / 2]), zoom) : coords;
+
     // Holder rail just narrowed the view — zoom in on the museum.
     if (focusCoords) {
-      map.flyTo(focusCoords, 7, { duration: 1 });
+      map.flyTo(visibleCenter(focusCoords, 7), 7, { duration: 1 });
       return;
     }
 
     if (!selectedWpId) {
-      map.flyTo(MAGDALA_COORDS, 3, { duration: 0.8 });
+      map.flyTo(visibleCenter(MAGDALA_COORDS, 3), 3, { duration: 0.8 });
       return;
     }
 
@@ -103,13 +132,22 @@ function ReviewMapController({
     const coords = selected ? artifactCoords(selected) : undefined;
     if (!coords) return;
     const bounds = L.latLngBounds([MAGDALA_COORDS, coords]);
-    map.flyToBounds(bounds, { padding: [70, 70], duration: 1 });
+    map.flyToBounds(bounds, { paddingTopLeft: [70, 70], paddingBottomRight: [70, 70 + inset], duration: 1 });
   }, [artifacts, map, selectedWpId, focusKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
 
-export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect, focusCoords }: Props) {
+export default function ReviewMapLeaflet({
+  artifacts,
+  wikidataHits,
+  selectedWpId,
+  onSelect,
+  focusCoords,
+  compact = false,
+  onMarkerTap,
+  bottomInset = 0,
+}: Props) {
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
@@ -120,7 +158,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
       center={MAGDALA_COORDS}
       zoom={3}
       style={{ height: '100%', width: '100%' }}
-      zoomControl
+      zoomControl={false}
       attributionControl
     >
       <TileLayer
@@ -128,8 +166,14 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
       />
+      {!compact && <ZoomControl position="topleft" />}
 
-      <ReviewMapController artifacts={artifacts} selectedWpId={selectedWpId} focusCoords={focusCoords} />
+      <ReviewMapController
+        artifacts={artifacts}
+        selectedWpId={selectedWpId}
+        focusCoords={focusCoords}
+        bottomInset={bottomInset}
+      />
 
       <CircleMarker
         center={MAGDALA_COORDS}
@@ -166,38 +210,41 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
               fillOpacity: selectedInGroup ? 0.75 : 0.45,
             }}
             eventHandlers={{
-              click: () => onSelect(group.artifacts[0].wpId),
+              click: () =>
+                compact && onMarkerTap ? onMarkerTap(group.artifacts) : onSelect(group.artifacts[0].wpId),
             }}
           >
-            <Tooltip direction="top" offset={[0, -radius]} opacity={1}>
-              <div className="text-xs min-w-48">
-                <div className="font-semibold mb-1">{group.artifacts[0].holder?.name ?? 'Unknown holder'}</div>
-                <div className="opacity-80">
-                  {group.artifacts.length} artifact{group.artifacts.length === 1 ? '' : 's'}
+            {!compact && (
+              <Tooltip direction="top" offset={[0, -radius]} opacity={1}>
+                <div className="text-xs min-w-48">
+                  <div className="font-semibold mb-1">{group.artifacts[0].holder?.name ?? 'Unknown holder'}</div>
+                  <div className="opacity-80">
+                    {group.artifacts.length} artifact{group.artifacts.length === 1 ? '' : 's'}
+                  </div>
+                  <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
+                    {group.artifacts.slice(0, 8).map((card) => (
+                      <button
+                        key={card.wpId}
+                        type="button"
+                        className="bg-transparent p-0 m-0 border-0 text-left w-full cursor-pointer hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelect(card.wpId);
+                        }}
+                      >
+                        •{' '}
+                        {card.dedup.method === 'p973' && card.dedup.qid
+                          ? wikidataHits[card.dedup.qid]?.label ?? card.title
+                          : card.title}
+                      </button>
+                    ))}
+                    {group.artifacts.length > 8 && (
+                      <div className="opacity-70">+{group.artifacts.length - 8} more</div>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-2 max-h-24 overflow-y-auto space-y-1">
-                  {group.artifacts.slice(0, 8).map((card) => (
-                    <button
-                      key={card.wpId}
-                      type="button"
-                      className="bg-transparent p-0 m-0 border-0 text-left w-full cursor-pointer hover:underline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelect(card.wpId);
-                      }}
-                    >
-                      •{' '}
-                      {card.dedup.method === 'p973' && card.dedup.qid
-                        ? wikidataHits[card.dedup.qid]?.label ?? card.title
-                        : card.title}
-                    </button>
-                  ))}
-                  {group.artifacts.length > 8 && (
-                    <div className="opacity-70">+{group.artifacts.length - 8} more</div>
-                  )}
-                </div>
-              </div>
-            </Tooltip>
+              </Tooltip>
+            )}
           </CircleMarker>
         );
       })}
