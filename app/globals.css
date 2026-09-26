@@ -56,6 +56,13 @@ h4 {
 }
 
 /* ── Leaflet overrides ─────────────────────────────────────── */
+/* Mobile sheet layout: keep the OSM attribution above the 96px peek bar
+   (PEEK_PX in components/ReviewMap/sheetGeometry.ts). Unlayered on purpose —
+   leaflet.css is unlayered, so a Tailwind utility would lose to it. */
+.compact-map .leaflet-bottom {
+  bottom: 96px;
+}
+
 .leaflet-container {
   background: #1a0e06;
   font-family: var(--font-source-sans), system-ui, sans-serif;

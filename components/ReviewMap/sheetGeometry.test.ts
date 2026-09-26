@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PEEK_PX, SNAP_POINTS, classifySwipe, sheetHiddenPx, sheetInsetPx, snapToVaul, vaulToSnap } from './sheetGeometry';
+import { PEEK_PX, SNAP_POINTS, clampCameraInset, classifySwipe, sheetHiddenPx, sheetInsetPx, snapToVaul, vaulToSnap } from './sheetGeometry';
 
 describe('snap mapping', () => {
   it('round-trips every snap through vaul values', () => {
@@ -46,6 +46,22 @@ describe('sheetHiddenPx', () => {
 
   it('full hides the top gap left above the sheet', () => {
     expect(sheetHiddenPx('full', 800)).toBe(64);
+  });
+});
+
+describe('clampCameraInset', () => {
+  // flyToBounds pads 70px each side; the inset must leave room to frame into,
+  // or Leaflet's zoom maths goes NaN (zoom 19) or collapses to min zoom.
+  it('leaves a tall map untouched', () => {
+    expect(clampCameraInset(400, 1000)).toBe(400);
+  });
+
+  it('caps the inset on a short landscape map', () => {
+    expect(clampCameraInset(180, 320)).toBe(100);
+  });
+
+  it('never goes negative on a tiny map', () => {
+    expect(clampCameraInset(180, 150)).toBe(0);
   });
 });
 

@@ -1,3 +1,4 @@
+import { ADDIS_ABABA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
 
 export type MuseumGroup = {
@@ -86,6 +87,25 @@ export function isReturnedArtifact(card: ArtifactCard): boolean {
   return card.allHolders.some(
     (h) => ETHIOPIA_HOLDER_PATTERN.test(h.name) || ETHIOPIA_HOLDER_PATTERN.test(h.rawName),
   );
+}
+
+/**
+ * Where an artifact sits on the map. Repatriated plunder defaults to the
+ * National Museum of Ethiopia in Addis Ababa, overriding whatever its prior
+ * holder resolved to; everything else uses its holder's coordinates.
+ */
+export function displayCoords(card: ArtifactCard): [number, number] | undefined {
+  if (isReturnedArtifact(card)) return ADDIS_ABABA_COORDS;
+  return card.holder?.coords;
+}
+
+/** Where to fly when a holder is focused: where its pins are drawn. */
+export function holderFocusCoords(cards: ArtifactCard[]): [number, number] | null {
+  for (const card of cards) {
+    const coords = displayCoords(card);
+    if (coords) return coords;
+  }
+  return null;
 }
 
 export interface ReviewWikidataHit {

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { adoptedSheetDepth, sheetHistoryState } from './sheetHistoryState';
 
 /**
  * Keeps one browser history entry per level of sheet depth, so the phone's
@@ -9,10 +10,13 @@ import { useEffect, useRef } from 'react';
  *   silently, so the next Back doesn't replay a level that's already gone.
  * - A real Back (popstate) → call `onBack`, which shrinks depth by exactly one
  *   (see `sheetDepth`), leaving history and sheet in step.
+ * - Entries an earlier mount left behind are adopted on first sync, and all
+ *   entries are rewound when the layout leaves compact mode.
  */
 export function useSheetHistory(depth: number, onBack: () => void, enabled: boolean) {
   const pushed = useRef(0);
   const silentPops = useRef(0);
+  const adopted = useRef(false);
   const onBackRef = useRef(onBack);
 
   useEffect(() => {
@@ -20,9 +24,20 @@ export function useSheetHistory(depth: number, onBack: () => void, enabled: bool
   }, [onBack]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      // No popstate listener while disabled, so this rewind needs no silencing.
+      if (pushed.current > 0) {
+        window.history.go(-pushed.current);
+        pushed.current = 0;
+      }
+      return;
+    }
+    if (!adopted.current) {
+      adopted.current = true;
+      pushed.current = adoptedSheetDepth(window.history.state);
+    }
     if (depth > pushed.current) {
-      for (let i = pushed.current; i < depth; i += 1) window.history.pushState({ lootedSheet: i + 1 }, '');
+      for (let i = pushed.current; i < depth; i += 1) window.history.pushState(sheetHistoryState(i + 1), '');
       pushed.current = depth;
     } else if (depth < pushed.current) {
       // One history.go() fires one popstate, however many entries it skips.

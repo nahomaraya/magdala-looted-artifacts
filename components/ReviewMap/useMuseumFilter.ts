@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
 import type { MuseumGroup } from './reviewMapUtils';
-import { UNKNOWN_HOLDER } from './reviewMapUtils';
+import { UNKNOWN_HOLDER, holderFocusCoords } from './reviewMapUtils';
 
 export function useMuseumFilter(visibleArtifacts: ArtifactCard[]) {
   const [selectedMuseum, setSelectedMuseum] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export function useMuseumFilter(visibleArtifacts: ArtifactCard[]) {
 
   const focusedCoords = useMemo<[number, number] | null>(() => {
     if (!selectedMuseum) return null;
-    return filteredArtifacts.find((a) => a.holder?.coords)?.holder?.coords ?? null;
+    return holderFocusCoords(filteredArtifacts);
   }, [selectedMuseum, filteredArtifacts]);
 
   useEffect(() => {

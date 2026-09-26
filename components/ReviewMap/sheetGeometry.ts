@@ -27,6 +27,14 @@ export function sheetInsetPx(snap: SheetSnap, viewportHeight: number): number {
   return Math.round(viewportHeight * 0.5);
 }
 
+/** Space `flyToBounds` needs: 70px padding top and bottom plus a framing band. */
+const CAMERA_FRAME_PX = 70 * 2 + 80;
+
+/** Cap the inset so a short (landscape) map always keeps a band to frame into. */
+export function clampCameraInset(inset: number, mapHeight: number): number {
+  return Math.max(0, Math.min(inset, mapHeight - CAMERA_FRAME_PX));
+}
+
 /**
  * How much of the (full-height) sheet vaul pushes below the screen at a snap.
  * The sheet body pads its scroll area by this much so its last rows stay reachable.

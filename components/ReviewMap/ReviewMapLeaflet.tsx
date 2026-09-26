@@ -4,19 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MAGDALA_COORDS, ADDIS_ABABA_COORDS } from '@/lib/constants';
+import { MAGDALA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
-import { isReturnedArtifact } from './reviewMapUtils';
-
-/**
- * Where an artifact sits on the map. Repatriated plunder defaults to the
- * National Museum of Ethiopia in Addis Ababa, overriding whatever its prior
- * holder resolved to; everything else uses its holder's coordinates.
- */
-function artifactCoords(card: ArtifactCard): [number, number] | undefined {
-  if (isReturnedArtifact(card)) return ADDIS_ABABA_COORDS;
-  return card.holder?.coords;
-}
+import { displayCoords as artifactCoords } from './reviewMapUtils';
+import { clampCameraInset } from './sheetGeometry';
 
 type ReviewStatus = 'already' | 'fuzzy' | 'new';
 
@@ -111,7 +102,7 @@ function ReviewMapController({
   }, [map]);
 
   useEffect(() => {
-    const inset = insetRef.current;
+    const inset = clampCameraInset(insetRef.current, map.getSize().y);
     // Shift a fly-to centre down by half the hidden strip, so the target
     // lands in the middle of the visible map rather than behind the sheet.
     const visibleCenter = (coords: L.LatLngExpression, zoom: number) =>

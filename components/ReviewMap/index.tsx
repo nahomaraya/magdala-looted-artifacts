@@ -116,7 +116,8 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
         onSelectArtifact={selectOnWide}
       />
 
-      <div className="flex-1 min-w-0 relative">
+      {/* Compact: lift Leaflet's bottom controls (OSM attribution) above the 96px peek bar. */}
+      <div className={`flex-1 min-w-0 relative ${compact ? 'compact-map' : ''}`}>
         <ReviewMapLeaflet
           artifacts={filteredArtifacts}
           wikidataHits={wikidataHits}
