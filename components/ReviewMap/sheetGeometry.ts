@@ -27,6 +27,16 @@ export function sheetInsetPx(snap: SheetSnap, viewportHeight: number): number {
   return Math.round(viewportHeight * 0.5);
 }
 
+/**
+ * How much of the (full-height) sheet vaul pushes below the screen at a snap.
+ * The sheet body pads its scroll area by this much so its last rows stay reachable.
+ */
+export function sheetHiddenPx(snap: SheetSnap, viewportHeight: number): number {
+  const visible = snapToVaul(snap);
+  const visiblePx = typeof visible === 'number' ? viewportHeight * visible : parseFloat(visible);
+  return Math.round(viewportHeight - visiblePx);
+}
+
 const MIN_SWIPE_PX = 56;
 
 /** Horizontal swipe on the artifact card → step; anything vertical-ish is the sheet's. */

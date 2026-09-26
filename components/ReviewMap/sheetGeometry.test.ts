@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PEEK_PX, SNAP_POINTS, classifySwipe, sheetInsetPx, snapToVaul, vaulToSnap } from './sheetGeometry';
+import { PEEK_PX, SNAP_POINTS, classifySwipe, sheetHiddenPx, sheetInsetPx, snapToVaul, vaulToSnap } from './sheetGeometry';
 
 describe('snap mapping', () => {
   it('round-trips every snap through vaul values', () => {
@@ -30,6 +30,22 @@ describe('sheetInsetPx', () => {
 
   it('full is capped at half so the camera still frames the upper map', () => {
     expect(sheetInsetPx('full', 800)).toBe(400);
+  });
+});
+
+describe('sheetHiddenPx', () => {
+  // vaul translates a full-height sheet down by (viewport - visible), so this
+  // much of it sits below the screen and must be padded out of the scroll area.
+  it('peek hides everything but the peek bar', () => {
+    expect(sheetHiddenPx('peek', 800)).toBe(800 - PEEK_PX);
+  });
+
+  it('half hides half the viewport', () => {
+    expect(sheetHiddenPx('half', 800)).toBe(400);
+  });
+
+  it('full hides the top gap left above the sheet', () => {
+    expect(sheetHiddenPx('full', 800)).toBe(64);
   });
 });
 

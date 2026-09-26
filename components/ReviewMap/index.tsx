@@ -1,19 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewMapState } from './useReviewMapState';
 import { useLayoutMode } from './useLayoutMode';
+import { useMobileSheet } from './useMobileSheet';
+import { useSheetHistory } from './useSheetHistory';
+import { resolveMarkerTap, sessionTargetFor, sheetDepth, type SheetView } from './sheetNav';
+import { sheetInsetPx } from './sheetGeometry';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 import { ArtifactPane } from '../Artifact';
 import LeftRail from './LeftRail';
-import MobileHeader from './MobileHeader';
-import MobileMenu from './MobileMenu';
-import MobileDetails from './MobileDetails';
-import { type ReviewWikidataHit } from './reviewMapUtils';
+import MobileTopBar from './mobile/MobileTopBar';
+import MapFilterChips from './mobile/MapFilterChips';
+import MobileSheet from './mobile/MobileSheet';
+import { holderKeyOf, type ReviewWikidataHit } from './reviewMapUtils';
 
 export type { ReviewWikidataHit };
 
@@ -25,11 +29,11 @@ interface Props {
 
 export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
   const mode = useLayoutMode();
+  const compact = mode === 'compact';
   const {
     selectedWpId,
     setSelectedWpId,
     selectedMuseum,
-    setSelectedMuseum,
     museumGroups,
     visibleArtifacts,
     filteredArtifacts,
@@ -38,6 +42,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
     selectedIndex,
     handleSelectMuseum,
     wikidataUrl,
+    stepArtifact,
     handleNextArtifact,
     handlePreviousArtifact,
     showWeakLinkArtifacts,
@@ -52,52 +57,63 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
     currentLocationLabel,
     responsibleLabel,
   } = useReviewMapState(artifacts, wikidataHits, initialSelectedWpId, mode);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+
+  // Every sheet transition moves the review session in the same batch, so the
+  // sheet and the session can't disagree about holder focus or selection.
+  const applySheetView = useCallback(
+    (view: SheetView) => {
+      const { holderKey, wpId } = sessionTargetFor(view);
+      if (holderKey !== selectedMuseum) handleSelectMuseum(holderKey);
+      setSelectedWpId(wpId);
+    },
+    [selectedMuseum, handleSelectMuseum, setSelectedWpId],
+  );
+  const { sheet, dispatch } = useMobileSheet(initialSelectedWpId, applySheetView);
+  const goBack = useCallback(() => dispatch({ type: 'back' }), [dispatch]);
+  useSheetHistory(sheetDepth(sheet), goBack, compact);
+
+  const stepInSheet = (dir: 1 | -1) => {
+    const wpId = stepArtifact(dir);
+    if (wpId) dispatch({ type: 'showArtifact', wpId });
+  };
+
+  const handleMarkerTap = (group: ArtifactCard[]) => {
+    const action = resolveMarkerTap(group.map((a) => ({ wpId: a.wpId, holderKey: holderKeyOf(a) })));
+    if (action) dispatch(action);
+  };
+
+  // A filter change can take the open artifact or holder out of scope; on
+  // mobile, fall back to the holders list at the current sheet height.
+  const toggleReturnedOnly = () => {
+    setShowReturnedOnly((s) => !s);
+    if (compact) dispatch({ type: 'showHolders' });
+  };
+  const toggleWeakLinks = () => {
+    setShowWeakLinkArtifacts((s) => !s);
+    if (compact) dispatch({ type: 'showHolders' });
+  };
+
+  // 1024–1279px: the artifact pane can slide away; picking an artifact brings it back.
+  const [paneCollapsed, setPaneCollapsed] = useState(false);
+  const selectOnWide = (wpId: string) => {
+    setPaneCollapsed(false);
+    setSelectedWpId(wpId);
+  };
+
+  const viewportHeight = compact ? window.innerHeight : 0;
+  const bottomInset = compact ? sheetInsetPx(sheet.snap, viewportHeight) : 0;
 
   return (
-    <div className="flex h-screen bg-navy flex-col md:flex-row">
+    <div className="flex h-dvh bg-navy flex-col lg:flex-row">
+      <MobileTopBar />
+
       <LeftRail
         museumGroups={museumGroups}
         artifacts={visibleArtifacts}
         selectedMuseum={selectedMuseum}
         selectedWpId={selectedWpId}
         onSelectMuseum={handleSelectMuseum}
-        onSelectArtifact={setSelectedWpId}
-      />
-
-      <MobileHeader
-        previewTitle={previewTitle ?? null}
-        onToggleMenu={() => setMobileMenuOpen((s) => !s)}
-        onOpenDetails={() => setMobileDetailsOpen(true)}
-        onNext={handleNextArtifact}
-        onPrev={handlePreviousArtifact}
-      />
-
-      <MobileMenu
-        mobileMenuOpen={mobileMenuOpen}
-        museumGroups={museumGroups}
-        artifacts={visibleArtifacts}
-        onClose={() => setMobileMenuOpen(false)}
-        onSelectMuseum={(name) => { handleSelectMuseum(name); setMobileMenuOpen(false); }}
-        showWeakLinkArtifacts={showWeakLinkArtifacts}
-        onToggleWeakLinkArtifacts={() => setShowWeakLinkArtifacts((s) => !s)}
-        showReturnedOnly={showReturnedOnly}
-        onToggleReturnedOnly={() => setShowReturnedOnly((s) => !s)}
-        returnedCount={returnedCount}
-      />
-
-      <MobileDetails
-        mobileDetailsOpen={mobileDetailsOpen}
-        selected={selected}
-        previewTitle={previewTitle ?? null}
-        previewImage={previewImage}
-        selectedIndex={selectedIndex}
-        filteredArtifacts={filteredArtifacts}
-        selectedMuseum={selectedMuseum}
-        onClose={() => { setMobileDetailsOpen(false); setMobileMenuOpen(false); }}
-        onNext={handleNextArtifact}
-        onPrev={handlePreviousArtifact}
+        onSelectArtifact={selectOnWide}
       />
 
       <div className="flex-1 min-w-0 relative">
@@ -105,10 +121,33 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
           artifacts={filteredArtifacts}
           wikidataHits={wikidataHits}
           selectedWpId={selectedWpId}
-          onSelect={setSelectedWpId}
+          onSelect={selectOnWide}
           focusCoords={focusedCoords}
+          compact={compact}
+          onMarkerTap={handleMarkerTap}
+          bottomInset={bottomInset}
         />
-        <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
+
+        <MapFilterChips
+          showReturnedOnly={showReturnedOnly}
+          onToggleReturnedOnly={toggleReturnedOnly}
+          returnedCount={returnedCount}
+          showWeakLinkArtifacts={showWeakLinkArtifacts}
+          onToggleWeakLinkArtifacts={toggleWeakLinks}
+        />
+
+        {paneCollapsed && (
+          <button
+            type="button"
+            onClick={() => setPaneCollapsed(false)}
+            aria-label="Show artifact pane"
+            className="hidden lg:block xl:hidden absolute bottom-6 right-3 z-1000 rounded bg-navy/80 px-3 py-1.5 text-xs text-parchment shadow backdrop-blur-sm hover:bg-navy"
+          >
+            « Artifact
+          </button>
+        )}
+
+        <div className="hidden lg:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
           <Link
             href="/library"
             className="rounded bg-gold px-3 py-1.5 text-xs font-semibold text-navy shadow transition-colors hover:bg-gold-light"
@@ -117,7 +156,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
           </Link>
           <button
             type="button"
-            onClick={() => setShowReturnedOnly((s) => !s)}
+            onClick={toggleReturnedOnly}
             disabled={returnedCount === 0}
             title={
               returnedCount === 0
@@ -134,7 +173,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
           </button>
           <button
             type="button"
-            onClick={() => setShowWeakLinkArtifacts((s) => !s)}
+            onClick={toggleWeakLinks}
             disabled={showReturnedOnly}
             className={`px-3 py-1.5 rounded text-xs font-medium shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               showWeakLinkArtifacts
@@ -164,8 +203,29 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
         takenFromLabel={takenFromLabel}
         currentLocationLabel={currentLocationLabel}
         responsibleLabel={responsibleLabel}
+        collapsed={paneCollapsed}
+        onToggleCollapsed={() => setPaneCollapsed((c) => !c)}
       />
+
+      {compact && (
+        <MobileSheet
+          sheet={sheet}
+          dispatch={dispatch}
+          museumGroups={museumGroups}
+          visibleArtifacts={visibleArtifacts}
+          selected={selected}
+          previewTitle={previewTitle ?? null}
+          previewImage={previewImage}
+          selectedIndex={selectedIndex}
+          scopeCount={filteredArtifacts.length}
+          wikidataUrl={wikidataUrl}
+          takenFromLabel={takenFromLabel}
+          currentLocationLabel={currentLocationLabel}
+          responsibleLabel={responsibleLabel}
+          onStep={stepInSheet}
+          viewportHeight={viewportHeight}
+        />
+      )}
     </div>
   );
 }
-

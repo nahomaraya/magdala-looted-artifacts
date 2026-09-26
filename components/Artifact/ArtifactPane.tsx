@@ -19,6 +19,9 @@ type ArtifactPaneProps = {
   takenFromLabel: string;
   currentLocationLabel: string;
   responsibleLabel: string | null;
+  /** 1024–1279px only: pane slid away to widen the map. Ignored at xl. */
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
 export function ArtifactPane({
@@ -35,9 +38,26 @@ export function ArtifactPane({
   takenFromLabel,
   currentLocationLabel,
   responsibleLabel,
+  collapsed = false,
+  onToggleCollapsed,
 }: ArtifactPaneProps) {
   return (
-    <aside className="hidden md:block w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
+    <aside
+      className={`${
+        collapsed ? 'hidden xl:block' : 'hidden lg:block'
+      } relative w-105 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto`}
+    >
+      {onToggleCollapsed && (
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-label="Hide artifact pane"
+          title="Hide artifact pane"
+          className="xl:hidden absolute right-2 top-2 z-10 rounded px-2 py-1 text-parchment-dim hover:bg-navy/60"
+        >
+          »
+        </button>
+      )}
       {!selected ? (
         <div className="p-6 text-base text-parchment-dim">No artifact selected.</div>
       ) : (

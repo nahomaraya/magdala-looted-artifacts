@@ -2,7 +2,7 @@
 import { Drawer } from 'vaul';
 import type { ArtifactCard } from '@/lib/types';
 import type { SheetAction, SheetState } from '../sheetNav';
-import { SNAP_POINTS, snapToVaul, vaulToSnap } from '../sheetGeometry';
+import { SNAP_POINTS, sheetHiddenPx, snapToVaul, vaulToSnap } from '../sheetGeometry';
 import { holderKeyOf, type MuseumGroup } from '../reviewMapUtils';
 import SheetHoldersList from './SheetHoldersList';
 import SheetHolderArtifacts from './SheetHolderArtifacts';
@@ -23,6 +23,7 @@ export interface MobileSheetProps {
   currentLocationLabel: string;
   responsibleLabel: string | null;
   onStep: (dir: 1 | -1) => void;
+  viewportHeight: number;
 }
 
 export default function MobileSheet({
@@ -40,6 +41,7 @@ export default function MobileSheet({
   currentLocationLabel,
   responsibleLabel,
   onStep,
+  viewportHeight,
 }: MobileSheetProps) {
   const { view } = sheet;
   const back = () => dispatch({ type: 'back' });
@@ -67,7 +69,7 @@ export default function MobileSheet({
       <Drawer.Portal>
         <Drawer.Content
           aria-describedby={undefined}
-          className="lg:hidden fixed inset-x-0 bottom-0 z-1001 flex h-full max-h-[92%] flex-col rounded-t-2xl border-t border-navy-border bg-navy-light shadow-[0_-12px_40px_rgba(0,0,0,0.45)] outline-none"
+          className="lg:hidden fixed inset-x-0 bottom-0 z-1001 flex h-full flex-col rounded-t-2xl border-t border-navy-border bg-navy-light shadow-[0_-12px_40px_rgba(0,0,0,0.45)] outline-none"
         >
           <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-parchment-dim/40" aria-hidden="true" />
 
@@ -120,6 +122,8 @@ export default function MobileSheet({
                 onStep={onStep}
               />
             )}
+            {/* vaul slides the full-height sheet partly off-screen; keep the last rows reachable. */}
+            <div aria-hidden="true" style={{ height: sheetHiddenPx(sheet.snap, viewportHeight) }} />
           </div>
         </Drawer.Content>
       </Drawer.Portal>

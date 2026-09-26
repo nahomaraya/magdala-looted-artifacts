@@ -18,7 +18,7 @@ export default function LeftRail({
   onSelectArtifact: (wpId: string) => void;
 }) {
   return (
-    <aside className="hidden md:block w-64 shrink-0 border-r border-navy-border bg-navy overflow-y-auto">
+    <aside className="hidden lg:block w-64 shrink-0 border-r border-navy-border bg-navy overflow-y-auto">
       <div className="p-4 border-b border-navy-border">
         <h2 className="font-heading text-sm uppercase tracking-wide text-parchment">Holders</h2>
         <p className="text-xs text-parchment-dim mt-1">
