@@ -80,7 +80,7 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
           wikidataHits={wikidataHits}
           selectedWpId={view.selected?.wpId ?? null}
           onSelect={(wpId) => dispatch({ t: 'selectArtifact', wpId })}
-          focusCoords={null}
+          focusToken={view.focusToken}
         />
         <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
           <Link

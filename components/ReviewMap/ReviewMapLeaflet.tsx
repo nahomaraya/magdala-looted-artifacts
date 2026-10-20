@@ -1,7 +1,7 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { MAGDALA_COORDS } from '@/lib/constants';
@@ -15,9 +15,9 @@ interface Props {
   wikidataHits: Partial<Record<string, { label: string }>>;
   selectedWpId: string | null;
   onSelect: (wpId: string) => void;
-  /** When set, the map flies to these coordinates instead of fitting bounds
-   *  around Magdala + the selected artifact. Used by the holder rail. */
-  focusCoords?: [number, number] | null;
+  /** Changes only when a holder is picked. A change means "fly to the holder
+   *  once"; an unchanged token means the camera should frame the selection. */
+  focusToken: number;
 }
 
 interface GroupedLocation {
@@ -66,22 +66,27 @@ function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {
 function ReviewMapController({
   artifacts,
   selectedWpId,
-  focusCoords,
+  focusToken,
 }: {
   artifacts: ArtifactCard[];
   selectedWpId: string | null;
-  focusCoords?: [number, number] | null;
+  focusToken: number;
 }) {
   const map = useMap();
-  // Deps need a stable signature, otherwise a new array literal would re-fire
-  // the effect on every parent render.
-  const focusKey = focusCoords ? `${focusCoords[0]},${focusCoords[1]}` : '';
+  const seenToken = useRef(focusToken);
 
   useEffect(() => {
-    // Holder rail just narrowed the view — zoom in on the museum.
-    if (focusCoords) {
-      map.flyTo(focusCoords, 7, { duration: 1 });
-      return;
+    // A holder was just picked: fly to it once. Without this token the effect
+    // could not tell a fresh pick from steady state, so every artifact click
+    // flew back to the holder.
+    if (focusToken !== seenToken.current) {
+      seenToken.current = focusToken;
+      const first = artifacts.find((a) => displayCoords(a));
+      const coords = first ? displayCoords(first) : undefined;
+      if (coords) {
+        map.flyTo(coords, 7, { duration: 1 });
+        return;
+      }
     }
 
     if (!selectedWpId) {
@@ -92,14 +97,16 @@ function ReviewMapController({
     const selected = artifacts.find((a) => a.wpId === selectedWpId);
     const coords = selected ? displayCoords(selected) : undefined;
     if (!coords) return;
-    const bounds = L.latLngBounds([MAGDALA_COORDS, coords]);
-    map.flyToBounds(bounds, { padding: [70, 70], duration: 1 });
-  }, [artifacts, map, selectedWpId, focusKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    map.flyToBounds(L.latLngBounds([MAGDALA_COORDS, coords]), {
+      padding: [70, 70],
+      duration: 1,
+    });
+  }, [artifacts, map, selectedWpId, focusToken]);
 
   return null;
 }
 
-export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect, focusCoords }: Props) {
+export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect, focusToken }: Props) {
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
@@ -119,7 +126,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
         maxZoom={19}
       />
 
-      <ReviewMapController artifacts={artifacts} selectedWpId={selectedWpId} focusCoords={focusCoords} />
+      <ReviewMapController artifacts={artifacts} selectedWpId={selectedWpId} focusToken={focusToken} />
 
       <CircleMarker
         center={MAGDALA_COORDS}
