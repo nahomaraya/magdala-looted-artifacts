@@ -1,30 +1,31 @@
 import Image from 'next/image';
 import type { ArtifactCard } from '@/lib/types';
+import { presentation } from '../Artifact/presentation';
+import type { ReviewWikidataHit } from './reviewMapTypes';
 
 export default function MobileDetails({
   mobileDetailsOpen,
   selected,
-  previewTitle,
-  previewImage,
+  hits,
   selectedIndex,
-  filteredArtifacts,
-  selectedMuseum,
+  count,
+  selectedHolder,
   onClose,
   onNext,
   onPrev,
 }: {
   mobileDetailsOpen: boolean;
   selected: ArtifactCard | null;
-  previewTitle: string | null;
-  previewImage: string | undefined;
+  hits: Record<string, ReviewWikidataHit>;
   selectedIndex: number;
-  filteredArtifacts: ArtifactCard[];
-  selectedMuseum: string | null;
+  count: number;
+  selectedHolder: string | null;
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
 }) {
   if (!mobileDetailsOpen) return null;
+  const p = selected ? presentation(selected, hits) : null;
   return (
     <div className="md:hidden fixed inset-0 z-50 overflow-auto bg-navy/95 p-4">
       <div className="flex items-center justify-between mb-4">
@@ -34,18 +35,18 @@ export default function MobileDetails({
         </div>
       </div>
 
-      {!selected ? (
+      {!selected || !p ? (
         <div className="text-parchment-dim">No artifact selected.</div>
       ) : (
         <div className="space-y-4">
           <div className="rounded border border-navy-border/70 bg-navy/70 px-4 py-4">
-            <h3 className="font-heading text-2xl text-parchment truncate">{previewTitle ?? selected.title}</h3>
-            <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}{selectedMuseum && <span className="ml-1 opacity-70"> in {selectedMuseum}</span>}</p>
+            <h3 className="font-heading text-2xl text-parchment truncate">{p.title}</h3>
+            <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {count}{selectedHolder && <span className="ml-1 opacity-70"> in {selectedHolder}</span>}</p>
           </div>
 
-          {previewImage && previewTitle && (
+          {p.image && p.title && (
             <div className="relative h-56 rounded border border-navy-border overflow-hidden bg-navy">
-              <Image src={previewImage} alt={previewTitle} fill className="object-contain" unoptimized />
+              <Image src={p.image} alt={p.title} fill className="object-contain" unoptimized />
             </div>
           )}
 

@@ -1,25 +1,25 @@
 import type { ArtifactCard } from '@/lib/types';
-import type { MuseumGroup } from './reviewMapUtils';
+import type { HolderGroup } from './reviewSession';
 
 export default function MobileMenu({
   mobileMenuOpen,
-  museumGroups,
+  holderGroups,
   artifacts,
   onClose,
-  onSelectMuseum,
-  showWeakLinkArtifacts,
-  onToggleWeakLinkArtifacts,
+  onSelectHolder,
+  showWeakLink,
+  onToggleWeakLink,
   showReturnedOnly,
   onToggleReturnedOnly,
   returnedCount,
 }: {
   mobileMenuOpen: boolean;
-  museumGroups: MuseumGroup[];
+  holderGroups: HolderGroup[];
   artifacts: ArtifactCard[];
   onClose: () => void;
-  onSelectMuseum: (name: string | null) => void;
-  showWeakLinkArtifacts: boolean;
-  onToggleWeakLinkArtifacts: () => void;
+  onSelectHolder: (name: string | null) => void;
+  showWeakLink: boolean;
+  onToggleWeakLink: () => void;
   showReturnedOnly: boolean;
   onToggleReturnedOnly: () => void;
   returnedCount: number;
@@ -44,20 +44,20 @@ export default function MobileMenu({
         </button>
         <button
           type="button"
-          onClick={() => { onToggleWeakLinkArtifacts(); onClose(); }}
+          onClick={() => { onToggleWeakLink(); onClose(); }}
           disabled={showReturnedOnly}
           className={`w-full text-left px-4 py-2 text-sm rounded disabled:opacity-50 ${
-            showWeakLinkArtifacts ? 'bg-blue-500/15 text-blue-200' : 'bg-navy/30 text-parchment'
+            showWeakLink ? 'bg-blue-500/15 text-blue-200' : 'bg-navy/30 text-parchment'
           }`}
         >
-          {showWeakLinkArtifacts ? 'Hide weak link objects' : 'Show weak link objects'}
+          {showWeakLink ? 'Hide weak link objects' : 'Show weak link objects'}
         </button>
         {/* Removed 'All artifacts' option per UX request */}
-        {museumGroups.map((g) => (
+        {holderGroups.map((g) => (
           <button
             key={g.key}
             type="button"
-            onClick={() => { onSelectMuseum(g.key); onClose(); }}
+            onClick={() => { onSelectHolder(g.key); onClose(); }}
             className="w-full text-left px-4 py-2 text-sm rounded bg-navy/30 text-parchment"
             title={g.qid ? `${g.name} (${g.qid})` : g.name}
           >

@@ -1,17 +1,16 @@
 'use client';
-import type { ArtifactCard } from '@/lib/types';
+import type { Presentation } from './presentation';
 
 export default function ArtifactActions({
-  primarySource,
-  wikidataUrl,
-  handleNextArtifact,
-  handlePreviousArtifact,
+  presentation,
+  onNext,
+  onPrev,
 }: {
-  primarySource: string | null;
-  wikidataUrl: string | null;
-  handleNextArtifact: () => void;
-  handlePreviousArtifact: () => void;
+  presentation: Presentation;
+  onNext: () => void;
+  onPrev: () => void;
 }) {
+  const { wikidataUrl, primarySource } = presentation;
   return (
     <div className="flex flex-wrap gap-2">
       {wikidataUrl ? (
@@ -40,7 +39,7 @@ export default function ArtifactActions({
 
       <button
         type="button"
-        onClick={handleNextArtifact}
+        onClick={onNext}
         className="rounded border border-blue-300/60 bg-blue-500/15 px-4 py-2 text-base font-medium text-blue-100 hover:bg-blue-500/25"
       >
         Next artifact
@@ -48,7 +47,7 @@ export default function ArtifactActions({
 
       <button
         type="button"
-        onClick={handlePreviousArtifact}
+        onClick={onPrev}
         className="rounded border border-parchment-dim/30 bg-navy px-4 py-2 text-base text-parchment hover:bg-navy/60"
       >
         Previous artifact
