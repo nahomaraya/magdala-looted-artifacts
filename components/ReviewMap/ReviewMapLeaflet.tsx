@@ -4,14 +4,12 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MAGDALA_COORDS } from '@/lib/constants';
+import { ADDIS_ABABA_COORDS, MAGDALA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
 import { displayCoords } from '@/lib/repatriation';
-import { getReviewStatus, type ReviewStatus } from './reviewMapTypes';
 
 interface Props {
   artifacts: ArtifactCard[];
-  wikidataHits: Partial<Record<string, { label: string }>>;
   selectedWpId: string | null;
   onSelect: (wpId: string) => void;
   /** Changes only when a holder is picked. A change means "fly to the holder
@@ -25,14 +23,13 @@ interface GroupedLocation {
   artifacts: ArtifactCard[];
 }
 
-function statusColor(status: ReviewStatus): string {
-  return status === 'already' ? '#9ca3af' : '#3b82f6';
-}
+// Mirror the `gold` and `location` tokens in app/globals.css (Leaflet path
+// options take hex strings, not Tailwind classes).
+const PIN_COLOR = '#daa520';
+const ADDIS_PIN_COLOR = '#52b788';
 
-function pickGroupStatus(cards: ArtifactCard[]): ReviewStatus {
-  const counts: Record<ReviewStatus, number> = { already: 0, new: 0 };
-  for (const card of cards) counts[getReviewStatus(card)] += 1;
-  return counts.already >= counts.new ? 'already' : 'new';
+function isAddisAbaba(coords: [number, number]): boolean {
+  return coords[0] === ADDIS_ABABA_COORDS[0] && coords[1] === ADDIS_ABABA_COORDS[1];
 }
 
 function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {
@@ -94,7 +91,7 @@ function ReviewMapController({
   return null;
 }
 
-export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId, onSelect, focusToken }: Props) {
+export default function ReviewMapLeaflet({ artifacts, selectedWpId, onSelect, focusToken }: Props) {
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
@@ -134,8 +131,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
       )}
 
       {groups.map((group) => {
-        const status = pickGroupStatus(group.artifacts);
-        const color = statusColor(status);
+        const color = isAddisAbaba(group.coords) ? ADDIS_PIN_COLOR : PIN_COLOR;
         const radius = 7 + (group.artifacts.length / maxCount) * 15;
         const selectedInGroup = group.artifacts.some((a) => a.wpId === selectedWpId);
 
@@ -171,10 +167,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
                         onSelect(card.wpId);
                       }}
                     >
-                      •{' '}
-                      {card.dedup.method === 'p973' && card.dedup.qid
-                        ? wikidataHits[card.dedup.qid]?.label ?? card.title
-                        : card.title}
+                      • {card.title}
                     </button>
                   ))}
                   {group.artifacts.length > 8 && (

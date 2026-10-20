@@ -150,7 +150,6 @@ export function assembleCard(
     // statement — the actual collection/archive pages — falling back to the
     // P973 post URL only when an item carries no references yet.
     sourceLinks: f.references.length ? f.references : url ? [url] : [],
-    datePublished: undefined,
     // Returned = the item carries a return-event (P793) statement, not merely
     // "held in Addis Ababa".
     returned: f.hasReturnEvent,
@@ -159,10 +158,5 @@ export function assembleCard(
     allHolders,
     primaryCategory: allCategories[0] ?? null,
     allCategories,
-    // Only "disputed" (P5102) is emitted today; it drives weakLink rather than
-    // the 4-level confidence, so this stays null until richer values land.
-    maqdalaConfidence: null,
-    isReviewable: true,
-    dedup: { exists: true, qid, method: 'p973', confidence: 100 },
   };
 }

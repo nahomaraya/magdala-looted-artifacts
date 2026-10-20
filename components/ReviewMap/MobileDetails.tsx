@@ -1,12 +1,10 @@
 import Image from 'next/image';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
-import type { ReviewWikidataHit } from './reviewMapTypes';
 
 export default function MobileDetails({
   mobileDetailsOpen,
   selected,
-  hits,
   selectedIndex,
   count,
   selectedHolder,
@@ -16,7 +14,6 @@ export default function MobileDetails({
 }: {
   mobileDetailsOpen: boolean;
   selected: ArtifactCard | null;
-  hits: Record<string, ReviewWikidataHit>;
   selectedIndex: number;
   count: number;
   selectedHolder: string | null;
@@ -25,7 +22,7 @@ export default function MobileDetails({
   onPrev: () => void;
 }) {
   if (!mobileDetailsOpen) return null;
-  const p = selected ? presentation(selected, hits) : null;
+  const p = selected ? presentation(selected) : null;
   return (
     <div className="md:hidden fixed inset-0 z-50 overflow-auto bg-navy/95 p-4">
       <div className="flex items-center justify-between mb-4">

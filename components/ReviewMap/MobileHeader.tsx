@@ -1,11 +1,9 @@
 import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
-import type { ReviewWikidataHit } from './reviewMapTypes';
 
-export default function MobileHeader({ selected, hits, onToggleMenu, onOpenDetails, onNext, onPrev }: {
+export default function MobileHeader({ selected, onToggleMenu, onOpenDetails, onNext, onPrev }: {
   selected: ArtifactCard | null;
-  hits: Record<string, ReviewWikidataHit>;
   onToggleMenu: () => void;
   onOpenDetails: () => void;
   onNext: () => void;
@@ -22,7 +20,7 @@ export default function MobileHeader({ selected, hits, onToggleMenu, onOpenDetai
       </button>
 
       <h1 className="font-heading text-lg text-parchment truncate flex-1">
-        {selected ? presentation(selected, hits).title : 'No artifact selected.'}
+        {selected ? presentation(selected).title : 'No artifact selected.'}
       </h1>
 
       <div className="flex items-center gap-2">

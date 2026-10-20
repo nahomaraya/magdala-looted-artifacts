@@ -31,7 +31,6 @@ export default function ArtifactMetadataGrid({ selected }: { selected: ArtifactC
         label="Primary category"
         value={selected.primaryCategory ? `${selected.primaryCategory.name ?? 'Unresolved'}${selected.primaryCategory.qid ? ` (${selected.primaryCategory.qid})` : ''}` : 'Unresolved'}
       /> */}
-      {/* <ArtifactMetadataCard label="Maqdala confidence" value={selected.maqdalaConfidence ?? null} /> */}
       <ArtifactCategoriesCard categories={selected.allCategories} />
 
       <div className="sm:col-span-2 rounded border border-navy-border/60 bg-navy/40 overflow-hidden">

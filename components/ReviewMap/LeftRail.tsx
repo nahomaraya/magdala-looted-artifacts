@@ -57,7 +57,6 @@ export default function LeftRail({
                   title={a.title}
                 >
                   <span className="truncate">{a.title}</span>
-                  <span className="shrink-0 text-xs opacity-70">{a.dedup?.exists ? 'dup' : ''}</span>
                 </button>
               );
             })}

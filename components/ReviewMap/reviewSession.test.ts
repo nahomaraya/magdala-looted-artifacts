@@ -7,8 +7,6 @@ function card(over: Partial<ArtifactCard> & { wpId: string }): ArtifactCard {
     slug: '', url: `https://example.com/${over.wpId}`, title: `Artifact ${over.wpId}`,
     weakLink: false, imageUrls: [], sourceLinks: ['https://example.com/src'],
     holder: null, allHolders: [], primaryCategory: null, allCategories: [],
-    maqdalaConfidence: null, isReviewable: true,
-    dedup: { exists: true, qid: 'Q1', method: 'p973', confidence: 100 },
     ...over,
   } as ArtifactCard;
 }

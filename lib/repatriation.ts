@@ -16,7 +16,7 @@ export function isReturned(card: ArtifactCard): boolean {
  * Museum of Ethiopia in Addis Ababa, overriding whatever their prior holder
  * resolved to; everything else uses its holder's coordinates.
  *
- * This is the single coords function: pins, the Magdala polyline and the
+ * This is the single coords function: pins, the Maqdala line and the
  * camera fly-to all call it, so they cannot disagree.
  */
 export function displayCoords(card: ArtifactCard): [number, number] | undefined {

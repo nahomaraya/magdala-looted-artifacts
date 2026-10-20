@@ -12,17 +12,12 @@ import LeftRail from './LeftRail';
 import MobileHeader from './MobileHeader';
 import MobileMenu from './MobileMenu';
 import MobileDetails from './MobileDetails';
-import { type ReviewWikidataHit } from './reviewMapTypes';
-
-export type { ReviewWikidataHit };
-
 interface Props {
   artifacts: ArtifactCard[];
-  wikidataHits: Record<string, ReviewWikidataHit>;
   initialSelectedWpId?: string | null;
 }
 
-export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
+export default function ReviewMap({ artifacts, initialSelectedWpId = null }: Props) {
   const [view, dispatch] = useReviewSession(artifacts, initialSelectedWpId);
   const drawers = useDrawers();
 
@@ -42,7 +37,6 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
 
       <MobileHeader
         selected={view.selected}
-        hits={wikidataHits}
         onToggleMenu={drawers.toggleMenu}
         onOpenDetails={drawers.openDetails}
         onNext={goNext}
@@ -65,7 +59,6 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
       <MobileDetails
         mobileDetailsOpen={drawers.detailsOpen}
         selected={view.selected}
-        hits={wikidataHits}
         selectedIndex={view.selectedIndex}
         count={view.filtered.length}
         selectedHolder={view.holder}
@@ -77,7 +70,6 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
       <div className="flex-1 min-w-0 relative">
         <ReviewMapLeaflet
           artifacts={view.filtered}
-          wikidataHits={wikidataHits}
           selectedWpId={view.selected?.wpId ?? null}
           onSelect={(wpId) => dispatch({ t: 'selectArtifact', wpId })}
           focusToken={view.focusToken}
@@ -126,7 +118,6 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
 
       <ArtifactPane
         selected={view.selected}
-        hits={wikidataHits}
         position={{ index: view.selectedIndex, count: view.filtered.length, holder: view.holder }}
         onNext={goNext}
         onPrev={goPrev}

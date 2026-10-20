@@ -1,6 +1,5 @@
 'use client';
 import type { ArtifactCard } from '@/lib/types';
-import type { ReviewWikidataHit } from '../ReviewMap/reviewMapTypes';
 import { presentation } from './presentation';
 import ArtifactHeader from './ArtifactHeader';
 import ArtifactActions from './ArtifactActions';
@@ -9,13 +8,12 @@ import ProvenanceReferences from './ProvenanceReferences';
 
 type ArtifactPaneProps = {
   selected: ArtifactCard | null;
-  hits: Record<string, ReviewWikidataHit>;
   position: { index: number; count: number; holder: string | null };
   onNext: () => void;
   onPrev: () => void;
 };
 
-export function ArtifactPane({ selected, hits, position, onNext, onPrev }: ArtifactPaneProps) {
+export function ArtifactPane({ selected, position, onNext, onPrev }: ArtifactPaneProps) {
   if (!selected) {
     return (
       <aside className="hidden md:block w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">
@@ -24,7 +22,7 @@ export function ArtifactPane({ selected, hits, position, onNext, onPrev }: Artif
     );
   }
 
-  const p = presentation(selected, hits);
+  const p = presentation(selected);
 
   return (
     <aside className="hidden md:block w-185 xl:w-184 shrink-0 border-l border-navy-border bg-navy-light/80 backdrop-blur-sm overflow-y-auto">

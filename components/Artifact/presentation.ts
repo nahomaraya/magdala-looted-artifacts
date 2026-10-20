@@ -1,5 +1,4 @@
 import type { ArtifactCard } from '@/lib/types';
-import type { ReviewWikidataHit } from '../ReviewMap/reviewMapTypes';
 import { UNKNOWN_HOLDER } from '../ReviewMap/reviewSession';
 
 /** Every artifact in this project was taken in the same event. */
@@ -15,18 +14,12 @@ export type Presentation = {
 };
 
 /** Everything one artifact needs in order to be displayed. Pure. */
-export function presentation(
-  card: ArtifactCard,
-  hits: Record<string, ReviewWikidataHit>,
-): Presentation {
-  const hit = card.dedup.method === 'p973' && card.dedup.qid ? hits[card.dedup.qid] : undefined;
+export function presentation(card: ArtifactCard): Presentation {
   return {
-    title: hit?.label ?? card.title,
-    image: hit?.imageUrl ?? card.imageUrls[0],
+    title: card.title,
+    image: card.imageUrls[0],
     primarySource: card.sourceLinks[0] ?? card.url ?? null,
-    wikidataUrl:
-      hit?.wikidataUrl ??
-      (card.dedup.qid ? `https://www.wikidata.org/wiki/${card.dedup.qid}` : null),
+    wikidataUrl: `https://www.wikidata.org/wiki/${card.wpId}`,
     currentLocation: card.where ?? card.holder?.name ?? 'Unknown',
     responsible:
       card.holder?.name && card.holder.name !== UNKNOWN_HOLDER ? card.holder.name : null,

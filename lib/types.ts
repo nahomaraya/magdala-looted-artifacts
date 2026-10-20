@@ -64,26 +64,6 @@ export type QidSource =
   | 'wikidata'    // resolved directly from a Wikidata statement (read path)
   | '';
 
-export interface TagEntry {
-  wpId: string;
-  name: string;
-  qid: string;              // empty if unresolved
-  source: QidSource;
-  count: number;
-  verificationStatus?: string; // from Airtable verified CSV
-  notes?: string;
-}
-
-export interface CategoryEntry {
-  wpId: string;
-  name: string;
-  qid: string;
-  source: QidSource;
-  notes?: string;
-}
-
-export type MaqdalaConfidence = 'strong' | 'clear' | 'possible' | 'suspected';
-
 export interface ResolvedHolder {
   rawName: string;                  // original tag_names value from artifact CSV
   name: string;                     // canonical name from the tags CSV
@@ -105,23 +85,10 @@ export interface ResolvedCategory {
   isSkip: boolean;
 }
 
-/** Imported here rather than re-exported from dedup to avoid pulling
- *  server-only modules into client component import graphs. */
-export interface DedupResultLite {
-  exists: boolean;
-  qid: string | null;
-  method: 'p973' | 'fuzzy' | 'none';
-  confidence: number;
-  matchedLabel?: string;
-  matchedDesc?: string;
-}
-
 /** The fully joined data shape rendered on the map and review panel. */
 export interface ArtifactCard {
-  // raw CSV / Airtable
+  /** The artifact's Wikidata QID (the name predates Wikidata becoming the source). */
   wpId: string;
-  /** Airtable record id, when sourced from Airtable. Empty otherwise. */
-  airtableId?: string;
   slug: string;
   url: string;
   title: string;
@@ -130,7 +97,6 @@ export interface ArtifactCard {
   where?: string;
   imageUrls: string[];
   sourceLinks: string[];
-  datePublished?: string;
   /** True when the artifact has been recorded as returned to Ethiopia. */
   returned?: boolean;
   /** Latest return date, ISO `YYYY-MM-DD`; absent when undated. */
@@ -141,11 +107,4 @@ export interface ArtifactCard {
   allHolders: ResolvedHolder[];
   primaryCategory: ResolvedCategory | null;
   allCategories: ResolvedCategory[];
-  maqdalaConfidence: MaqdalaConfidence | null;
-
-  // gating
-  isReviewable: boolean;   // false if every category is "skip" (Features, News, etc.)
-
-  // dedup
-  dedup: DedupResultLite;
 }

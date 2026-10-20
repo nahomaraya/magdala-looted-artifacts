@@ -1,5 +1,7 @@
 # Handoff: source artifacts from Wikidata (not Airtable)
 
+> Wikidata is the only source, as of this change. The Airtable and CSV loaders, dedup and the `ARTIFACT_SOURCE` switch are removed (along with the `dedup`, `airtableId`, `datePublished`, `maqdalaConfidence` and `isReviewable` card fields). The rest of this document is the original handoff; references to those pieces are historical.
+
 **Audience:** the engineer/agent implementing this refactor.
 **Status:** ready to start. Investigation done; this doc is the spec.
 **Author context:** written 2026-06-07 after fixing the QuickStatements P31/P276
@@ -185,18 +187,10 @@ local `data/categories_qids_filled.tsv` name map.
 - [ ] Acceptance: second page load does not hit WDQS; hitting the revalidate
       route forces a fresh pull.
 
-### Phase 4 — migration toggle
-- [ ] Add `lib/artifactSource.ts` reading `ARTIFACT_SOURCE` env
-      (`'wikidata' | 'airtable' | 'merge'`, default `'airtable'` until minting is
-      complete).
-- [ ] `'merge'`: Wikidata items + Airtable rows whose `P973` URL isn't yet on WD
-      (dedupe by URL). Lets the site stay complete *while items are still being
-      input*.
-- [ ] Wire the chosen source into `app/review/page.tsx` and
-      `lib/getLibraryArtifacts.ts` (it calls `getReviewArtifacts` today — point it
-      at the source selector instead).
-- [ ] Acceptance: flipping the env var swaps the source with no UI change;
-      `merge` shows the union with no duplicates.
+### Phase 4 — migration toggle (removed)
+The `ARTIFACT_SOURCE` switch (`wikidata | airtable | merge`) and `lib/artifactSource.ts`
+were removed once Wikidata became the only source. `app/review/page.tsx` and
+`lib/getLibraryArtifacts.ts` call `getWikidataArtifacts()` directly.
 
 ### Phase 5 — verify downstream is untouched
 - [ ] `/review`: pins render at holder coords; **returned items show in Addis**
@@ -225,9 +219,7 @@ holder `name` is the English label and `returned` is set per §3.
 1. **`Q851304` ("looted art")** is on every item as `P31`. Filter it out of
    `allCategories`, or keep it as a generic category? (Recommend filter; it's not
    a meaningful artifact type for the UI.)
-2. **`merge` mode** complexity — build it now, or ship a hard `wikidata`/`airtable`
-   switch first and add `merge` later? (Recommend switch first if minting is
-   nearly done.)
+2. **`merge` mode** — dropped; Wikidata is the only source.
 3. **`maqdalaConfidence`** — only "disputed" (`P5102`) is currently emitted, so
    the 4-level confidence may always resolve to null/weak. Confirm what's actually
    on the minted items and decide whether to keep the field meaningful.
@@ -246,15 +238,13 @@ holder `name` is the English label and `returned` is set per §3.
 - **Coords are WKT** `Point(lon lat)` — lon first; use `parseWktCoords()`.
 - **Vercel Data Cache ~2 MB/entry** — see Phase 3.
 - **Module caches don't survive cold starts on Vercel** — that's why we use
-  `unstable_cache`/ISR, not the in-process pattern from `dedup.ts`.
-- **Not-yet-minted items** vanish under `wikidata` mode — that's the reason for
-  `merge` while inputting.
+  `unstable_cache`/ISR, not in-process module caches.
+- **Not-yet-minted items** do not appear; there is no fallback source.
 
 ---
 
 ## 10. Definition of done
-- `ARTIFACT_SOURCE=wikidata` renders `/review` and `/looted-library` entirely from
-  Wikidata, cached, with no per-item REST calls and no Airtable in the read path.
+- `/review` and `/looted-library` render entirely from Wikidata, cached, with no per-item REST calls and no Airtable in the read path.
 - Returned items appear in Addis Ababa; toggles, rail, deep-links, and library
   book-type filters all work unchanged.
 - A documented way to refresh the cache after a minting batch (`/api/revalidate`).

@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Data source
+
+Wikidata is the only source, as of this change.
+
 ## Getting Started
 
 First, run the development server:

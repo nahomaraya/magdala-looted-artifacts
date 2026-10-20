@@ -1,5 +1,4 @@
 export { ArtifactPane } from './ArtifactPane';
-export { default as DedupBadge } from './DedupBadge';
 export { default as ArtifactHeader } from './ArtifactHeader';
 export { default as ArtifactActions } from './ArtifactActions';
 export { default as ArtifactMetadata } from './ArtifactMetadata';

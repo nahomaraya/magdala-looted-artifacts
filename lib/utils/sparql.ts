@@ -1,10 +1,9 @@
 // Shared SPARQL plumbing for the Wikidata-sourced read path.
 //
-// Server-side use only. Both the dedup pipeline (lib/dedup.ts) and the bulk
-// artifact fetcher (lib/getWikidataArtifacts.ts) send large `VALUES` blocks,
-// which is why this uses POST instead of GET, and both can blow past WDQS's
-// ~60 queries/minute anonymous limit on a hot reload, which is why this
-// honours `Retry-After` / backs off on 429.
+// Server-side use only. The bulk artifact fetcher (lib/getWikidataArtifacts.ts)
+// sends large `VALUES` blocks, which is why this uses POST instead of GET, and
+// it can blow past WDQS's ~60 queries/minute anonymous limit on a hot reload,
+// which is why this honours `Retry-After` / backs off on 429.
 import { SPARQL_ENDPOINT, USER_AGENT } from '../constants';
 
 export type Binding = Record<string, { value: string; type: string }>;

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getArtifact } from '@/lib/wikidata';
-import {getReviewArtifacts} from '@/lib/getReviewArtifacts'
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +15,6 @@ export async function GET(
 
   try {
     const artifact = await getArtifact(qid);
-    console.log(getReviewArtifacts);
     if (!artifact) {
       return NextResponse.json({ error: 'Artifact not found' }, { status: 404 });
     }
