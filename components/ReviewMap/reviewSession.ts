@@ -15,7 +15,7 @@ export type SessionState = {
   showReturnedOnly: boolean;
   holder: string | null;
   selectedWpId: string | null;
-  /** False until the user moves off the deep-linked artifact. Gates the pin. */
+  /** False until the user moves to an artifact other than the deep-linked one. Gates the pin. */
   hasNavigated: boolean;
   /** Bumped only by selectHolder. The map's one-shot fly-to signal. */
   focusToken: number;
@@ -159,7 +159,11 @@ export function reduce(
       return { ...next, selectedWpId: resetSelection(next, artifacts, pinnedWpId) };
     }
     case 'selectArtifact':
-      return { ...state, selectedWpId: action.wpId, hasNavigated: true };
+      return {
+        ...state,
+        selectedWpId: action.wpId,
+        hasNavigated: state.hasNavigated || action.wpId !== pinnedWpId,
+      };
     case 'next':
     case 'prev': {
       // Rule 6: wrapping navigation; an unfound selection lands on index 0.
@@ -168,7 +172,12 @@ export function reduce(
       const i = list.findIndex((a) => a.wpId === state.selectedWpId);
       const step = action.t === 'next' ? 1 : -1;
       const nextIndex = i < 0 ? 0 : (i + step + list.length) % list.length;
-      return { ...state, selectedWpId: list[nextIndex].wpId, hasNavigated: true };
+      const target = list[nextIndex].wpId;
+      return {
+        ...state,
+        selectedWpId: target,
+        hasNavigated: state.hasNavigated || target !== pinnedWpId,
+      };
     }
   }
 }
