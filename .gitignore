@@ -45,3 +45,4 @@ next-env.d.ts
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 .playwright-mcp/
+.superpowers/
