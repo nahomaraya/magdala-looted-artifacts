@@ -1,17 +1,14 @@
-import { getWikidataArtifacts } from '@/lib/getWikidataArtifacts';
-import ReviewMap from '@/components/ReviewMap/index';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 type ReviewPageProps = {
-  // Next.js 15+ delivers searchParams as a Promise that must be awaited.
-  searchParams?: Promise<{
-    wpId?: string;
-  }>;
+  searchParams?: Promise<{ wpId?: string | string[] }>;
 };
 
+// /review became /map; old `?wpId=` links carry over for /map to resolve.
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   const { wpId } = (await searchParams) ?? {};
-  const artifacts = await getWikidataArtifacts();
-  return <ReviewMap artifacts={artifacts} initialSelectedWpId={wpId ?? null} />;
+  const legacyId = Array.isArray(wpId) ? wpId[0] : wpId;
+  redirect(legacyId ? `/map?wpId=${encodeURIComponent(legacyId)}` : '/map');
 }

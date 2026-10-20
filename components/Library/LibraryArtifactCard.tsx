@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
 import { classifyBookType, type BookType } from '@/lib/libraryBookTypes';
+import { mapHref } from '@/components/StoryMap/views';
 import { checkCanEmbed } from '@/app/actions/check-iframe'; // <-- Adjust path as needed
 
 interface LibraryArtifactCardProps {
@@ -99,7 +100,7 @@ export default function LibraryArtifactCard({ artifact, bookType }: LibraryArtif
         <div className="mt-3 flex flex-col gap-3">
           <h2 className="text-xl font-semibold leading-snug text-parchment sm:text-2xl">{artifact.title}</h2>
           <Link
-            href={`/review?wpId=${encodeURIComponent(artifact.wpId)}`}
+            href={mapHref('map', artifact.wpId)}
             className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/35 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-400/60 hover:bg-blue-400/20"
           >
             Show in map

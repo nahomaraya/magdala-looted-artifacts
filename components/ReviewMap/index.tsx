@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import type { Dispatch } from 'react';
 import dynamic from 'next/dynamic';
-import type { ArtifactCard } from '@/lib/types';
-import { useReviewSession } from './useReviewSession';
+import type { SessionAction, SessionView } from './reviewSession';
+import type { ViewId } from '../StoryMap/views';
 import { useDrawers } from './useDrawers';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
@@ -13,12 +13,14 @@ import MobileHeader from './MobileHeader';
 import MobileMenu from './MobileMenu';
 import MobileDetails from './MobileDetails';
 interface Props {
-  artifacts: ArtifactCard[];
-  initialSelectedWpId?: string | null;
+  view: SessionView;
+  dispatch: Dispatch<SessionAction>;
+  // Only the mobile menu needs these, to list the Views above the holders.
+  activeView: ViewId;
+  onSelectView: (view: ViewId) => void;
 }
 
-export default function ReviewMap({ artifacts, initialSelectedWpId = null }: Props) {
-  const [view, dispatch] = useReviewSession(artifacts, initialSelectedWpId);
+export default function ReviewMap({ view, dispatch, activeView, onSelectView }: Props) {
   const drawers = useDrawers();
 
   const goNext = () => { dispatch({ t: 'next' }); drawers.openDetails(); };
@@ -48,6 +50,8 @@ export default function ReviewMap({ artifacts, initialSelectedWpId = null }: Pro
         holderGroups={view.holderGroups}
         artifacts={view.filtered}
         onClose={() => drawers.setMenuOpen(false)}
+        activeView={activeView}
+        onSelectView={(id) => { onSelectView(id); drawers.setMenuOpen(false); }}
         onSelectHolder={(name) => { dispatch({ t: 'selectHolder', name }); drawers.setMenuOpen(false); }}
         showWeakLink={view.showWeakLink}
         onToggleWeakLink={() => dispatch({ t: 'toggleWeakLink' })}
@@ -75,12 +79,6 @@ export default function ReviewMap({ artifacts, initialSelectedWpId = null }: Pro
           focusToken={view.focusToken}
         />
         <div className="hidden md:flex absolute top-3 right-3 z-1000 flex-col items-end gap-2 group">
-          <Link
-            href="/library"
-            className="rounded bg-gold px-3 py-1.5 text-xs font-semibold text-navy shadow transition-colors hover:bg-gold-light"
-          >
-            View library
-          </Link>
           <button
             type="button"
             onClick={() => dispatch({ t: 'toggleReturnedOnly' })}

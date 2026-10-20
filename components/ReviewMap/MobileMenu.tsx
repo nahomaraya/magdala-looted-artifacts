@@ -1,11 +1,15 @@
 import type { ArtifactCard } from '@/lib/types';
 import type { HolderGroup } from './reviewSession';
+import { ViewTabs } from '../StoryMap/ViewNav';
+import type { ViewId } from '../StoryMap/views';
 
 export default function MobileMenu({
   mobileMenuOpen,
   holderGroups,
   artifacts,
   onClose,
+  activeView,
+  onSelectView,
   onSelectHolder,
   showWeakLink,
   onToggleWeakLink,
@@ -17,6 +21,8 @@ export default function MobileMenu({
   holderGroups: HolderGroup[];
   artifacts: ArtifactCard[];
   onClose: () => void;
+  activeView: ViewId;
+  onSelectView: (view: ViewId) => void;
   onSelectHolder: (name: string | null) => void;
   showWeakLink: boolean;
   onToggleWeakLink: () => void;
@@ -32,6 +38,7 @@ export default function MobileMenu({
         <button aria-label="Close menu" onClick={onClose} className="text-parchment-dim px-2 py-1">✕</button>
       </div>
       <div className="space-y-2">
+        <ViewTabs activeView={activeView} onSelectView={onSelectView} />
         <button
           type="button"
           onClick={() => { onToggleReturnedOnly(); onClose(); }}

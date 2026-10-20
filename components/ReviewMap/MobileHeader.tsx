@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
 
@@ -24,12 +23,6 @@ export default function MobileHeader({ selected, onToggleMenu, onOpenDetails, on
       </h1>
 
       <div className="flex items-center gap-2">
-        <Link
-          href="/library"
-          className="rounded border border-gold/60 bg-gold px-3 py-1 text-sm font-semibold text-navy hover:bg-gold-light"
-        >
-          View library
-        </Link>
         <button
           type="button"
           onClick={onOpenDetails}
