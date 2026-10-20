@@ -1,17 +1,13 @@
 'use client';
-import { labelForSourceUrl } from '../ReviewMap/reviewMapUtils';
+import { TAKEN_FROM, labelForSourceUrl, type Presentation } from './presentation';
 import type { ArtifactCard } from '@/lib/types';
 
 export default function ProvenanceReferences({
   selected,
-  takenFromLabel,
-  currentLocationLabel,
-  responsibleLabel,
+  presentation,
 }: {
   selected: ArtifactCard;
-  takenFromLabel: string;
-  currentLocationLabel: string;
-  responsibleLabel: string | null;
+  presentation: Presentation;
 }) {
   return (
     <div className="space-y-4">
@@ -19,14 +15,14 @@ export default function ProvenanceReferences({
         <p className="text-parchment text-lg font-medium">Provenance</p>
         <div className="mt-3 space-y-2">
           <p>
-            <span className="text-parchment">Taken from:</span> {takenFromLabel}
+            <span className="text-parchment">Taken from:</span> {TAKEN_FROM}
           </p>
           <p>
-            <span className="text-parchment">Current location:</span> {currentLocationLabel}
+            <span className="text-parchment">Current location:</span> {presentation.currentLocation}
           </p>
-          {responsibleLabel && (
+          {presentation.responsible && (
             <p>
-              <span className="text-parchment">Responsible institution:</span> {responsibleLabel}
+              <span className="text-parchment">Responsible institution:</span> {presentation.responsible}
             </p>
           )}
         </div>

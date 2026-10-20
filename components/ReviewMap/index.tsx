@@ -13,7 +13,6 @@ import MobileHeader from './MobileHeader';
 import MobileMenu from './MobileMenu';
 import MobileDetails from './MobileDetails';
 import { type ReviewWikidataHit } from './reviewMapUtils';
-import { UNKNOWN_HOLDER } from './reviewSession';
 
 export type { ReviewWikidataHit };
 
@@ -30,21 +29,6 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
   const goNext = () => { dispatch({ t: 'next' }); drawers.openDetails(); };
   const goPrev = () => { dispatch({ t: 'prev' }); drawers.openDetails(); };
 
-  // Task 5's presentation module replaces these inline derivations.
-  const selected = view.selected;
-  const primarySource = selected?.sourceLinks[0] ?? selected?.url ?? null;
-  const selectedWikidata =
-    selected?.dedup.method === 'p973' && selected.dedup.qid ? wikidataHits[selected.dedup.qid] : null;
-  const wikidataUrl =
-    selectedWikidata?.wikidataUrl ??
-    (selected?.dedup.qid ? `https://www.wikidata.org/wiki/${selected.dedup.qid}` : null);
-  const previewImage = selectedWikidata?.imageUrl ?? selected?.imageUrls[0];
-  const previewTitle = selectedWikidata?.label ?? selected?.title;
-  const takenFromLabel = 'Maqdala, Ethiopia (Battle of Magdala, 1868)';
-  const currentLocationLabel = selected?.where ?? selected?.holder?.name ?? 'Unknown';
-  const responsibleLabel =
-    selected?.holder?.name && selected.holder.name !== UNKNOWN_HOLDER ? selected.holder.name : null;
-
   return (
     <div className="flex h-screen bg-navy flex-col md:flex-row">
       <LeftRail
@@ -57,7 +41,8 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
       />
 
       <MobileHeader
-        previewTitle={previewTitle ?? null}
+        selected={view.selected}
+        hits={wikidataHits}
         onToggleMenu={drawers.toggleMenu}
         onOpenDetails={drawers.openDetails}
         onNext={goNext}
@@ -79,9 +64,8 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
 
       <MobileDetails
         mobileDetailsOpen={drawers.detailsOpen}
-        selected={selected}
-        previewTitle={previewTitle ?? null}
-        previewImage={previewImage}
+        selected={view.selected}
+        hits={wikidataHits}
         selectedIndex={view.selectedIndex}
         count={view.filtered.length}
         selectedHolder={view.holder}
@@ -141,19 +125,11 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
       </div>
 
       <ArtifactPane
-        selected={selected}
-        previewTitle={previewTitle}
-        selectedIndex={view.selectedIndex}
-        filteredArtifacts={view.filtered}
-        selectedMuseum={view.holder}
-        previewImage={previewImage}
-        primarySource={primarySource}
-        wikidataUrl={wikidataUrl}
-        handleNextArtifact={goNext}
-        handlePreviousArtifact={goPrev}
-        takenFromLabel={takenFromLabel}
-        currentLocationLabel={currentLocationLabel}
-        responsibleLabel={responsibleLabel}
+        selected={view.selected}
+        hits={wikidataHits}
+        position={{ index: view.selectedIndex, count: view.filtered.length, holder: view.holder }}
+        onNext={goNext}
+        onPrev={goPrev}
       />
     </div>
   );
