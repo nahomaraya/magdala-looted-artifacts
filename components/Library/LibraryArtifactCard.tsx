@@ -1,18 +1,18 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
 import { classifyBookType, type BookType } from '@/lib/libraryBookTypes';
-import { mapHref } from '@/components/StoryMap/views';
 import { checkCanEmbed } from '@/app/actions/check-iframe'; // <-- Adjust path as needed
 
 interface LibraryArtifactCardProps {
   artifact: ArtifactCard;
   /** Primary book type. Falls back to deriving it when not supplied. */
   bookType?: BookType;
+  /** Switches to the Dispersal View with this artifact selected. */
+  onShowInMap: (qid: string) => void;
 }
 
-export default function LibraryArtifactCard({ artifact, bookType }: LibraryArtifactCardProps) {
+export default function LibraryArtifactCard({ artifact, bookType, onShowInMap }: LibraryArtifactCardProps) {
   const type = bookType ?? classifyBookType(artifact);
   const primarySource = artifact.sourceLinks[0] ?? artifact.url;
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -99,13 +99,14 @@ export default function LibraryArtifactCard({ artifact, bookType }: LibraryArtif
         </div>
         <div className="mt-3 flex flex-col gap-3">
           <h2 className="text-xl font-semibold leading-snug text-parchment sm:text-2xl">{artifact.title}</h2>
-          <Link
-            href={mapHref('map', artifact.wpId)}
+          <button
+            type="button"
+            onClick={() => onShowInMap(artifact.wpId)}
             className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/35 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-400/60 hover:bg-blue-400/20"
           >
             Show in map
             <span aria-hidden="true">↗</span>
-          </Link>
+          </button>
           <a
             href={primarySource}
             target="_blank"

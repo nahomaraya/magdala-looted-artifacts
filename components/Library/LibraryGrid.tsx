@@ -6,12 +6,13 @@ import LibraryArtifactCard from './LibraryArtifactCard';
 
 interface LibraryGridProps {
   artifacts: ArtifactCard[];
+  onShowInMap: (qid: string) => void;
 }
 
 const DEFAULT_PER_PAGE = 6;
 const ALL_TYPES = 'all';
 
-export default function LibraryGrid({ artifacts }: LibraryGridProps) {
+export default function LibraryGrid({ artifacts, onShowInMap }: LibraryGridProps) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [activeType, setActiveType] = useState<string>(ALL_TYPES);
@@ -91,6 +92,7 @@ export default function LibraryGrid({ artifacts }: LibraryGridProps) {
               key={artifact.wpId}
               artifact={artifact}
               bookType={typeById.get(artifact.wpId)}
+              onShowInMap={onShowInMap}
             />
           ))}
         </div>

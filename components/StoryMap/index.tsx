@@ -25,6 +25,11 @@ export default function StoryMap({ artifacts, initialView, initialQid }: Props) 
 
   const library = libraryArtifacts(artifacts);
 
+  const showInMap = (qid: string) => {
+    dispatch({ t: 'selectArtifact', wpId: qid });
+    setActiveView('map');
+  };
+
   return (
     <div className="md:pl-52">
       <ViewNav activeView={activeView} onSelectView={setActiveView} />
@@ -43,7 +48,7 @@ export default function StoryMap({ artifacts, initialView, initialQid }: Props) 
           <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
               <LibraryHeader totalCount={library.length} />
-              <LibraryGrid artifacts={library} />
+              <LibraryGrid artifacts={library} onShowInMap={showInMap} />
             </div>
           </main>
         </>
