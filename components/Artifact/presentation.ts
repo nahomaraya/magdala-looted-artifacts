@@ -1,5 +1,5 @@
 import type { ArtifactCard } from '@/lib/types';
-import type { ReviewWikidataHit } from '../ReviewMap/reviewMapUtils';
+import type { ReviewWikidataHit } from '../ReviewMap/reviewMapTypes';
 import { UNKNOWN_HOLDER } from '../ReviewMap/reviewSession';
 
 /** Every artifact in this project was taken in the same event. */

@@ -12,7 +12,7 @@ import LeftRail from './LeftRail';
 import MobileHeader from './MobileHeader';
 import MobileMenu from './MobileMenu';
 import MobileDetails from './MobileDetails';
-import { type ReviewWikidataHit } from './reviewMapUtils';
+import { type ReviewWikidataHit } from './reviewMapTypes';
 
 export type { ReviewWikidataHit };
 

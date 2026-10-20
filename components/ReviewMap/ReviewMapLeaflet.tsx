@@ -7,8 +7,7 @@ import L from 'leaflet';
 import { MAGDALA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
 import { displayCoords } from '@/lib/repatriation';
-
-type ReviewStatus = 'already' | 'fuzzy' | 'new';
+import { getReviewStatus, type ReviewStatus } from './reviewMapTypes';
 
 interface Props {
   artifacts: ArtifactCard[];
@@ -26,25 +25,14 @@ interface GroupedLocation {
   artifacts: ArtifactCard[];
 }
 
-function getStatus(card: ArtifactCard): ReviewStatus {
-  if (card.dedup.method === 'p973' && card.dedup.qid) return 'already';
-  if (card.dedup.method === 'fuzzy' && card.dedup.qid) return 'fuzzy';
-  return 'new';
-}
-
 function statusColor(status: ReviewStatus): string {
-  if (status === 'already') return '#9ca3af';
-  if (status === 'fuzzy') return '#f59e0b';
-  return '#3b82f6';
+  return status === 'already' ? '#9ca3af' : '#3b82f6';
 }
 
 function pickGroupStatus(cards: ArtifactCard[]): ReviewStatus {
-  const counts: Record<ReviewStatus, number> = { already: 0, fuzzy: 0, new: 0 };
-  for (const card of cards) counts[getStatus(card)] += 1;
-
-  if (counts.already >= counts.fuzzy && counts.already >= counts.new) return 'already';
-  if (counts.fuzzy >= counts.new) return 'fuzzy';
-  return 'new';
+  const counts: Record<ReviewStatus, number> = { already: 0, new: 0 };
+  for (const card of cards) counts[getReviewStatus(card)] += 1;
+  return counts.already >= counts.new ? 'already' : 'new';
 }
 
 function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {

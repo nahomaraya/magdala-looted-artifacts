@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
-import type { ReviewWikidataHit } from './reviewMapUtils';
+import type { ReviewWikidataHit } from './reviewMapTypes';
 
 export default function MobileDetails({
   mobileDetailsOpen,

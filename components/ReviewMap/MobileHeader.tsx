@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
-import type { ReviewWikidataHit } from './reviewMapUtils';
+import type { ReviewWikidataHit } from './reviewMapTypes';
 
 export default function MobileHeader({ selected, hits, onToggleMenu, onOpenDetails, onNext, onPrev }: {
   selected: ArtifactCard | null;

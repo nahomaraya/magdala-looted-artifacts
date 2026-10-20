@@ -1,6 +1,6 @@
 'use client';
 import type { ArtifactCard } from '@/lib/types';
-import type { ReviewWikidataHit } from '../ReviewMap/reviewMapUtils';
+import type { ReviewWikidataHit } from '../ReviewMap/reviewMapTypes';
 import { presentation } from './presentation';
 import ArtifactHeader from './ArtifactHeader';
 import ArtifactActions from './ArtifactActions';
