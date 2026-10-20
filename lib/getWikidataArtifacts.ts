@@ -14,15 +14,17 @@ import {
   LOOTING_QID,
   MAQDALA_BATTLE_QID,
   BRITISH_EXPEDITION_QID,
-  NATIONAL_MUSEUM_ETHIOPIA_QID,
-  DISPUTED_CLAIM_QID,
-  LOOTED_ART_QID,
-  INSTITUTION_COORDS,
-  DEFAULT_COORDS,
+  RETURN_EVENT_QID,
 } from './constants';
 import { sparqlPost, qidFromUri, type Binding } from './utils/sparql';
 import { parseWktCoords } from './wikidata';
-import type { ArtifactCard, ResolvedHolder, ResolvedCategory } from './types';
+import {
+  bindingToItemFields,
+  assembleCard,
+  type ItemFields,
+  type HolderRow,
+} from './wikidataCards';
+import type { ArtifactCard } from './types';
 
 /** Inject at most this many QIDs into a single VALUES block. */
 const CHUNK = 150;
@@ -31,10 +33,6 @@ function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
   return out;
-}
-
-function splitConcat(value: string | undefined): string[] {
-  return (value ?? '').split('|').map((v) => v.trim()).filter(Boolean);
 }
 
 // ─── Q1: discovery ─────────────────────────────────────────────────────────
@@ -60,33 +58,6 @@ async function discoverArtifactQIDs(): Promise<string[]> {
 
 // ─── Q2: per-item fields ─────────────────────────────────────────────────────
 
-interface ItemFields {
-  label?: string;
-  description?: string;
-  url?: string;
-  types: string[];        // P31 QIDs (Q851304 filtered out)
-  imageUrls: string[];    // Special:FilePath URLs, used directly
-  weakLink: boolean;      // pq:P5102 == disputed
-  references: string[];   // pr:P854 reference URLs on the P793 looting statement
-}
-
-function bindingToItemFields(b: any): ItemFields {
-  const label = b.itemLabel?.value;
-  const types = splitConcat(b.types?.value)
-    .map(qidFromUri)
-    .filter((q) => q !== LOOTED_ART_QID);
-  const confidences = splitConcat(b.confidences?.value).map(qidFromUri);
-  return {
-    label: label && label !== qidFromUri(b.item.value) ? label : undefined,
-    description: b.itemDescription?.value || undefined,
-    url: b.article?.value || undefined,
-    types,
-    imageUrls: splitConcat(b.images?.value),
-    weakLink: confidences.includes(DISPUTED_CLAIM_QID),
-    references: splitConcat(b.refs?.value),
-  };
-}
-
 async function fetchItemFields(qids: string[]): Promise<Map<string, ItemFields>> {
   const out = new Map<string, ItemFields>();
   for (const part of chunk(qids, CHUNK)) {
@@ -97,6 +68,8 @@ async function fetchItemFields(qids: string[]): Promise<Map<string, ItemFields>>
              (GROUP_CONCAT(DISTINCT ?image;      separator="|") AS ?images)
              (GROUP_CONCAT(DISTINCT ?confidence; separator="|") AS ?confidences)
              (GROUP_CONCAT(DISTINCT ?refUrl;     separator="|") AS ?refs)
+             (GROUP_CONCAT(DISTINCT ?rs;         separator="|") AS ?returns)
+             (GROUP_CONCAT(DISTINCT ?returnDate; separator="|") AS ?returnDates)
       WHERE {
         VALUES ?item { ${values} }
         OPTIONAL { ?item wdt:P973 ?article }
@@ -106,6 +79,10 @@ async function fetchItemFields(qids: string[]): Promise<Map<string, ItemFields>>
           ?item p:P793 ?st . ?st ps:P793 wd:${LOOTING_QID} .
           OPTIONAL { ?st pq:P5102 ?confidence }
           OPTIONAL { ?st prov:wasDerivedFrom/pr:P854 ?refUrl }
+        }
+        OPTIONAL {
+          ?item p:P793 ?rs . ?rs ps:P793 wd:${RETURN_EVENT_QID} .
+          OPTIONAL { ?rs pq:P585 ?returnDate }
         }
         SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul,am". }
       }
@@ -121,24 +98,18 @@ async function fetchItemFields(qids: string[]): Promise<Map<string, ItemFields>>
 
 // ─── Q3: holders (P276 location + P195 collection) ──────────────────────────
 
-interface HolderRow {
-  qid: string;
-  label: string;
-  coords?: [number, number];
-  rel: 'P276' | 'P195';
-}
-
 async function fetchHolders(qids: string[]): Promise<Map<string, HolderRow[]>> {
   const out = new Map<string, HolderRow[]>();
   for (const part of chunk(qids, CHUNK)) {
     const values = part.map((q) => `wd:${q}`).join(' ');
     const query = `
-      SELECT ?item ?holder ?holderLabel ?coords ?rel WHERE {
+      SELECT ?item ?holder ?holderLabel ?coords ?countryLabel ?rel WHERE {
         VALUES ?item { ${values} }
         { ?item wdt:P276 ?holder . BIND("P276" AS ?rel) }
         UNION
         { ?item wdt:P195 ?holder . BIND("P195" AS ?rel) }
         OPTIONAL { ?holder wdt:P625 ?coords }
+        OPTIONAL { ?holder wdt:P17 ?country }
         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
       }`;
     const bindings = await sparqlPost(query);
@@ -149,6 +120,7 @@ async function fetchHolders(qids: string[]): Promise<Map<string, HolderRow[]>> {
         qid: holderQid,
         label: b.holderLabel?.value ?? holderQid,
         coords: b.coords?.value ? parseWktCoords(b.coords.value) : undefined,
+        country: b.countryLabel?.value,
         rel: (b.rel?.value as 'P276' | 'P195') ?? 'P276',
       };
       const list = out.get(item) ?? [];
@@ -181,65 +153,6 @@ async function fetchTypeLabels(typeQids: string[]): Promise<Map<string, string>>
   return out;
 }
 
-// ─── Assembly ────────────────────────────────────────────────────────────────
-
-/** Last non-empty path segment of the post URL, used as the card slug. */
-function slugFromUrl(url: string | undefined): string {
-  if (!url) return '';
-  try {
-    const path = new URL(url).pathname.replace(/\/+$/, '');
-    return path.split('/').pop() ?? '';
-  } catch {
-    return '';
-  }
-}
-
-/** Holder coords: prefer the item's own P625; else a known institution; else default. */
-function holderCoords(row: HolderRow): [number, number] {
-  if (row.coords) return row.coords;
-  const lower = row.label.toLowerCase();
-  for (const [key, coords] of Object.entries(INSTITUTION_COORDS)) {
-    const k = key.toLowerCase();
-    if (lower.includes(k) || k.includes(lower)) return coords;
-  }
-  return DEFAULT_COORDS;
-}
-
-function buildHolders(rows: HolderRow[]): ResolvedHolder[] {
-  // P276 (current location) before P195 (collection), then dedupe by QID so a
-  // holder appearing under both relations collapses to one pin/rail entry.
-  const ordered = [...rows].sort((a, b) => (a.rel === 'P276' ? 0 : 1) - (b.rel === 'P276' ? 0 : 1));
-  const seen = new Set<string>();
-  const holders: ResolvedHolder[] = [];
-  for (const row of ordered) {
-    if (seen.has(row.qid)) continue;
-    seen.add(row.qid);
-    holders.push({
-      rawName: row.label,
-      name: row.label,
-      qid: row.qid,
-      source: 'wikidata',
-      coords: holderCoords(row),
-    });
-  }
-  return holders;
-}
-
-function buildCategories(types: string[], labels: Map<string, string>): ResolvedCategory[] {
-  return types.map((qid) => {
-    const name = labels.get(qid) ?? qid;
-    return {
-      rawName: name,
-      name,
-      qid,
-      source: 'wikidata',
-      isCompound: false,
-      isQualifier: false,
-      isSkip: false,
-    };
-  });
-}
-
 /** Discover + project + assemble. Uncached; wrapped by getWikidataArtifacts. */
 export async function fetchWikidataArtifacts(): Promise<ArtifactCard[]> {
   const qids = await discoverArtifactQIDs();
@@ -255,42 +168,14 @@ export async function fetchWikidataArtifacts(): Promise<ArtifactCard[]> {
   for (const f of fieldsMap.values()) f.types.forEach((t) => typeQids.add(t));
   const typeLabels = await fetchTypeLabels([...typeQids]);
 
-  const cards: ArtifactCard[] = qids.map((qid) => {
-    const f = fieldsMap.get(qid) ?? ({ types: [], imageUrls: [], weakLink: false, references: [] } as ItemFields);
-    const allHolders = buildHolders(holdersMap.get(qid) ?? []);
-    const holder = allHolders[0] ?? null;
-    const allCategories = buildCategories(f.types, typeLabels);
-    const url = f.url ?? '';
-    const returned = allHolders.some((h) => h.qid === NATIONAL_MUSEUM_ETHIOPIA_QID);
-
-    return {
-      wpId: qid,
-      slug: slugFromUrl(url),
-      url,
-      title: f.label ?? qid,
-      weakLink: f.weakLink,
-      what: f.description,
-      where: holder?.name,
-      imageUrls: f.imageUrls,
-      // The iframe/source link uses the P854 reference(s) on the looting (P793)
-      // statement — the actual collection/archive pages — falling back to the
-      // P973 post URL only when an item carries no references yet.
-      sourceLinks: f.references.length ? f.references : url ? [url] : [],
-      datePublished: undefined,
-      returned,
-      holder,
-      allHolders,
-      primaryCategory: allCategories[0] ?? null,
-      allCategories,
-      // Only "disputed" (P5102) is emitted today; it drives weakLink rather than
-      // the 4-level confidence, so this stays null until richer values land.
-      maqdalaConfidence: null,
-      isReviewable: true,
-      dedup: { exists: true, qid, method: 'p973', confidence: 100 },
-    };
-  });
-
-  return cards;
+  return qids.map((qid) =>
+    assembleCard(
+      qid,
+      fieldsMap.get(qid) ?? bindingToItemFields({ item: { value: qid, type: 'uri' } }),
+      holdersMap.get(qid) ?? [],
+      typeLabels,
+    ),
+  );
 }
 
 // ─── Caching (Vercel Data Cache) ─────────────────────────────────────────────

@@ -51,8 +51,9 @@ export const BRITISH_EXPEDITION_QID = 'Q743652';      // British expedition to A
 export const P_DESCRIBED_AT_URL = 'P973';    // join key linking WD items to post URLs
 
 // Wikidata-sourced read path (lib/getWikidataArtifacts.ts) ─────────────────
-export const NATIONAL_MUSEUM_ETHIOPIA_QID = 'Q2652168'; // home of repatriated plunder
+export const NATIONAL_MUSEUM_ETHIOPIA_QID = 'Q2652168'; // no longer drives `returned`; kept for reference
 export const DISPUTED_CLAIM_QID = 'Q18912752';          // pq:P5102 value flagging a weak link
+export const RETURN_EVENT_QID = 'Q65088609';            // P793 value marking an item as returned (pq:P585 = date)
 export const LOOTED_ART_QID = 'Q851304';                // universal P31 on every item — filtered from categories
 
 export const SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql';

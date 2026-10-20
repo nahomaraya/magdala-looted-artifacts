@@ -90,6 +90,7 @@ export interface ResolvedHolder {
   qid: string | null;               // null if unmapped / source == skip|none
   source: QidSource;
   coords: [number, number];
+  country?: string;                 // P17 label of the holder, when stated
   verificationStatus?: string;
 }
 
@@ -132,6 +133,7 @@ export interface ArtifactCard {
   datePublished?: string;
   /** True when the artifact has been recorded as returned to Ethiopia. */
   returned?: boolean;
+  /** Latest return date, ISO `YYYY-MM-DD`; absent when undated. */
   returnedDate?: string;
 
   // resolved joins
