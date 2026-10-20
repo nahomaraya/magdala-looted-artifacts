@@ -60,12 +60,34 @@ describe('the deep-link pin (rule 2)', () => {
   });
 
   it('survives a filter change', () => {
-    const s = reduce(initSession(ALL, 'w'), { t: 'toggleWeakLink' }, ALL, 'w');
+    // Weak links ON then OFF again: with the filters back at their defaults,
+    // only the pin can keep 'w' visible.
+    let s = reduce(initSession(ALL, 'w'), { t: 'toggleWeakLink' }, ALL, 'w');
+    s = reduce(s, { t: 'toggleWeakLink' }, ALL, 'w');
     expect(derive(s, ALL, 'w').visible.map((a) => a.wpId)).toContain('w');
   });
 
   it('dies once the user picks another artifact', () => {
     const s = reduce(initSession(ALL, 'w'), { t: 'selectArtifact', wpId: 'a' }, ALL, 'w');
+    expect(derive(s, ALL, 'w').visible.map((a) => a.wpId)).not.toContain('w');
+  });
+
+  it('counts toward its holder while pinned and drops out of the count once dead', () => {
+    const britishMuseum = (s: ReturnType<typeof initSession>) =>
+      derive(s, ALL, 'w').holderGroups.find((g) => g.name === 'British Museum')?.count;
+    const pinned = initSession(ALL, 'w');
+    expect(britishMuseum(pinned)).toBe(3);
+    const dead = reduce(pinned, { t: 'selectArtifact', wpId: 'a' }, ALL, 'w');
+    expect(britishMuseum(dead)).toBe(2);
+    expect(derive(dead, ALL, 'w').visible.map((a) => a.wpId)).not.toContain('w');
+  });
+
+  it('dies once the user navigates away from it with next', () => {
+    // The default list with the pin is [a, b, c, w, r]; 'next' from 'w' lands on 'r'.
+    const pinned = initSession(ALL, 'w');
+    expect(derive(pinned, ALL, 'w').visible.map((a) => a.wpId)).toEqual(['a', 'b', 'c', 'w', 'r']);
+    const s = reduce(pinned, { t: 'next' }, ALL, 'w');
+    expect(s.selectedWpId).toBe('r');
     expect(derive(s, ALL, 'w').visible.map((a) => a.wpId)).not.toContain('w');
   });
 
@@ -125,6 +147,43 @@ describe('selection reset (rule 5)', () => {
     const v = derive(s, ALL, null);
     expect(v.selectedIndex).toBeGreaterThanOrEqual(0);
     expect(v.filtered.map((a) => a.wpId)).toContain(v.selected?.wpId);
+  });
+});
+
+describe('selection reset on toggles (rule 5)', () => {
+  it('toggleWeakLink moves a now-hidden selection to the new first artifact', () => {
+    let s = reduce(initSession(ALL, null), { t: 'toggleWeakLink' }, ALL, null);
+    s = reduce(s, { t: 'selectArtifact', wpId: 'w' }, ALL, null);
+    expect(s.selectedWpId).toBe('w');
+    s = reduce(s, { t: 'toggleWeakLink' }, ALL, null);   // 'w' is hidden again
+    expect(s.selectedWpId).toBe('a');
+    expect(derive(s, ALL, null).selected?.wpId).toBe('a');
+  });
+
+  it('toggleReturnedOnly moves a now-hidden selection to the new first artifact', () => {
+    let s = initSession(ALL, null);
+    expect(s.selectedWpId).toBe('a');
+    s = reduce(s, { t: 'toggleReturnedOnly' }, ALL, null);   // only 'r' remains
+    expect(s.selectedWpId).toBe('r');
+    expect(derive(s, ALL, null).selected?.wpId).toBe('r');
+  });
+
+  it('toggleWeakLink selects nothing when nothing remains visible', () => {
+    const arts = [WEAK];
+    let s = reduce(initSession(arts, null), { t: 'toggleWeakLink' }, arts, null);
+    expect(s.selectedWpId).toBe('w');
+    s = reduce(s, { t: 'toggleWeakLink' }, arts, null);
+    expect(s.selectedWpId).toBeNull();
+    expect(derive(s, arts, null).selected).toBeNull();
+  });
+
+  it('toggleReturnedOnly selects nothing when no artifact is returned', () => {
+    const arts = [A, B];
+    let s = initSession(arts, null);
+    expect(s.selectedWpId).toBe('a');
+    s = reduce(s, { t: 'toggleReturnedOnly' }, arts, null);
+    expect(s.selectedWpId).toBeNull();
+    expect(derive(s, arts, null).selected).toBeNull();
   });
 });
 
