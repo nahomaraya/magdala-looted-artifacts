@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 import type { ArtifactCard } from '@/lib/types';
 import { useReviewSession } from './useReviewSession';
+import { useDrawers } from './useDrawers';
 
 const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
 import { ArtifactPane } from '../Artifact';
@@ -25,11 +25,10 @@ interface Props {
 
 export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId = null }: Props) {
   const [view, dispatch] = useReviewSession(artifacts, initialSelectedWpId);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+  const drawers = useDrawers();
 
-  const goNext = () => { dispatch({ t: 'next' }); setMobileDetailsOpen(true); setMobileMenuOpen(false); };
-  const goPrev = () => { dispatch({ t: 'prev' }); setMobileDetailsOpen(true); setMobileMenuOpen(false); };
+  const goNext = () => { dispatch({ t: 'next' }); drawers.openDetails(); };
+  const goPrev = () => { dispatch({ t: 'prev' }); drawers.openDetails(); };
 
   // Task 5's presentation module replaces these inline derivations.
   const selected = view.selected;
@@ -59,18 +58,18 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
 
       <MobileHeader
         previewTitle={previewTitle ?? null}
-        onToggleMenu={() => setMobileMenuOpen((s) => !s)}
-        onOpenDetails={() => setMobileDetailsOpen(true)}
+        onToggleMenu={drawers.toggleMenu}
+        onOpenDetails={drawers.openDetails}
         onNext={goNext}
         onPrev={goPrev}
       />
 
       <MobileMenu
-        mobileMenuOpen={mobileMenuOpen}
+        mobileMenuOpen={drawers.menuOpen}
         holderGroups={view.holderGroups}
         artifacts={view.filtered}
-        onClose={() => setMobileMenuOpen(false)}
-        onSelectHolder={(name) => { dispatch({ t: 'selectHolder', name }); setMobileMenuOpen(false); }}
+        onClose={() => drawers.setMenuOpen(false)}
+        onSelectHolder={(name) => { dispatch({ t: 'selectHolder', name }); drawers.setMenuOpen(false); }}
         showWeakLink={view.showWeakLink}
         onToggleWeakLink={() => dispatch({ t: 'toggleWeakLink' })}
         showReturnedOnly={view.showReturnedOnly}
@@ -79,14 +78,14 @@ export default function ReviewMap({ artifacts, wikidataHits, initialSelectedWpId
       />
 
       <MobileDetails
-        mobileDetailsOpen={mobileDetailsOpen}
+        mobileDetailsOpen={drawers.detailsOpen}
         selected={selected}
         previewTitle={previewTitle ?? null}
         previewImage={previewImage}
         selectedIndex={view.selectedIndex}
         count={view.filtered.length}
         selectedHolder={view.holder}
-        onClose={() => { setMobileDetailsOpen(false); setMobileMenuOpen(false); }}
+        onClose={drawers.closeAll}
         onNext={goNext}
         onPrev={goPrev}
       />
