@@ -7,8 +7,8 @@ export default function MobileDetails({
   previewTitle,
   previewImage,
   selectedIndex,
-  filteredArtifacts,
-  selectedMuseum,
+  count,
+  selectedHolder,
   onClose,
   onNext,
   onPrev,
@@ -18,8 +18,8 @@ export default function MobileDetails({
   previewTitle: string | null;
   previewImage: string | undefined;
   selectedIndex: number;
-  filteredArtifacts: ArtifactCard[];
-  selectedMuseum: string | null;
+  count: number;
+  selectedHolder: string | null;
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
@@ -40,7 +40,7 @@ export default function MobileDetails({
         <div className="space-y-4">
           <div className="rounded border border-navy-border/70 bg-navy/70 px-4 py-4">
             <h3 className="font-heading text-2xl text-parchment truncate">{previewTitle ?? selected.title}</h3>
-            <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {filteredArtifacts.length}{selectedMuseum && <span className="ml-1 opacity-70"> in {selectedMuseum}</span>}</p>
+            <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {count}{selectedHolder && <span className="ml-1 opacity-70"> in {selectedHolder}</span>}</p>
           </div>
 
           {previewImage && previewTitle && (
