@@ -14,7 +14,7 @@ export default function MobileHeader({ selected, hits, onToggleMenu, onOpenDetai
   return (
     <div className="md:hidden w-full border-b border-navy-border bg-navy-light/80 p-3 flex items-center gap-3">
       <button
-        aria-label="Open museums"
+        aria-label="Open holders"
         onClick={onToggleMenu}
         className="rounded px-2 py-1 text-parchment-dim hover:bg-navy/50"
       >

@@ -118,9 +118,10 @@ export function initSession(
     hasNavigated: false,
     focusToken: 0,
   };
-  // With a deep link the pin IS the selection. Without one, start on the first
-  // visible artifact (what useArtifactNav used to default to).
-  if (pinnedWpId) return base;
+  // With a deep link to a known artifact the pin IS the selection. Without
+  // one, or when the pinned id matches no artifact, start on the first visible
+  // artifact (what useArtifactNav used to default to).
+  if (pinnedWpId !== null && artifacts.some((a) => a.wpId === pinnedWpId)) return base;
   return { ...base, selectedWpId: resetSelection(base, artifacts, null) };
 }
 

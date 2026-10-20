@@ -53,6 +53,11 @@ describe('visibility (rule 1)', () => {
 });
 
 describe('the deep-link pin (rule 2)', () => {
+  it('falls back to the first visible artifact when the pinned id is unknown', () => {
+    const v = derive(initSession(ALL, 'missing'), ALL, 'missing');
+    expect(v.selected?.wpId).toBe('a');
+  });
+
   it('shows a pinned weak link that the filters would hide', () => {
     const v = derive(initSession(ALL, 'w'), ALL, 'w');
     expect(v.visible.map((a) => a.wpId)).toContain('w');
@@ -214,7 +219,7 @@ describe('the focus token (rule 7)', () => {
   });
 
   it('does NOT bump when the holder is cleared', () => {
-    // Clearing the filter is not a pick, so the map must not fly anywhere.
+    // Clearing the holder is not a pick, so the map must not do a holder fly-to.
     let s = reduce(initSession(ALL, null), { t: 'selectHolder', name: 'British Museum' }, ALL, null);
     expect(s.focusToken).toBe(1);
     s = reduce(s, { t: 'selectHolder', name: null }, ALL, null);
