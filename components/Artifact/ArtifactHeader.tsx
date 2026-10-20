@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import type { ArtifactCard } from '@/lib/types';
 import type { Presentation } from './presentation';
+import ImagePlaceholder from './ImagePlaceholder';
 
 export default function ArtifactHeader({
   selected,
@@ -20,15 +21,25 @@ export default function ArtifactHeader({
           {presentation.title}
         </h1>
         <p className="text-base text-parchment-dim">
-          WP #{selected.wpId} · {position.index + 1} / {position.count}
+          <a
+            href={presentation.wikidataUrl ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gold hover:underline"
+          >
+            {selected.wpId}
+          </a>{' '}
+          · {position.index + 1} / {position.count}
           {position.holder && <span className="ml-1 opacity-70">in {position.holder}</span>}
         </p>
       </div>
 
-      {presentation.image && presentation.title && (
+      {presentation.image ? (
         <div className="relative h-64 rounded border border-navy-border overflow-hidden bg-navy">
           <Image src={presentation.image} alt={presentation.title} fill className="object-contain" unoptimized />
         </div>
+      ) : (
+        <ImagePlaceholder qid={selected.wpId} />
       )}
     </>
   );

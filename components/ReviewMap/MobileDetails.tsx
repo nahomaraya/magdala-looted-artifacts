@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import type { ArtifactCard } from '@/lib/types';
 import { presentation } from '../Artifact/presentation';
+import ImagePlaceholder from '../Artifact/ImagePlaceholder';
 
 export default function MobileDetails({
   mobileDetailsOpen,
@@ -38,13 +39,15 @@ export default function MobileDetails({
         <div className="space-y-4">
           <div className="rounded border border-navy-border/70 bg-navy/70 px-4 py-4">
             <h3 className="font-heading text-2xl text-parchment truncate">{p.title}</h3>
-            <p className="text-sm text-parchment-dim mt-1">WP #{selected.wpId} · {selectedIndex + 1} / {count}{selectedHolder && <span className="ml-1 opacity-70"> in {selectedHolder}</span>}</p>
+            <p className="text-sm text-parchment-dim mt-1"><a href={p.wikidataUrl ?? undefined} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">{selected.wpId}</a> · {selectedIndex + 1} / {count}{selectedHolder && <span className="ml-1 opacity-70"> in {selectedHolder}</span>}</p>
           </div>
 
-          {p.image && p.title && (
+          {p.image ? (
             <div className="relative h-56 rounded border border-navy-border overflow-hidden bg-navy">
               <Image src={p.image} alt={p.title} fill className="object-contain" unoptimized />
             </div>
+          ) : (
+            <ImagePlaceholder qid={selected.wpId} />
           )}
 
           <div className="flex gap-2">
