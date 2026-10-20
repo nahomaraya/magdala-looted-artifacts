@@ -4,19 +4,9 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MAGDALA_COORDS, ADDIS_ABABA_COORDS } from '@/lib/constants';
+import { MAGDALA_COORDS } from '@/lib/constants';
 import type { ArtifactCard } from '@/lib/types';
-import { isReturnedArtifact } from './reviewMapUtils';
-
-/**
- * Where an artifact sits on the map. Repatriated plunder defaults to the
- * National Museum of Ethiopia in Addis Ababa, overriding whatever its prior
- * holder resolved to; everything else uses its holder's coordinates.
- */
-function artifactCoords(card: ArtifactCard): [number, number] | undefined {
-  if (isReturnedArtifact(card)) return ADDIS_ABABA_COORDS;
-  return card.holder?.coords;
-}
+import { displayCoords } from '@/lib/repatriation';
 
 type ReviewStatus = 'already' | 'fuzzy' | 'new';
 
@@ -61,7 +51,7 @@ function groupByCoords(artifacts: ArtifactCard[]): GroupedLocation[] {
   const groups = new Map<string, GroupedLocation>();
 
   for (const card of artifacts) {
-    const coords = artifactCoords(card);
+    const coords = displayCoords(card);
     if (!coords) continue;
     const key = `${coords[0].toFixed(5)},${coords[1].toFixed(5)}`;
     if (!groups.has(key)) {
@@ -100,7 +90,7 @@ function ReviewMapController({
     }
 
     const selected = artifacts.find((a) => a.wpId === selectedWpId);
-    const coords = selected ? artifactCoords(selected) : undefined;
+    const coords = selected ? displayCoords(selected) : undefined;
     if (!coords) return;
     const bounds = L.latLngBounds([MAGDALA_COORDS, coords]);
     map.flyToBounds(bounds, { padding: [70, 70], duration: 1 });
@@ -113,7 +103,7 @@ export default function ReviewMapLeaflet({ artifacts, wikidataHits, selectedWpId
   const groups = useMemo(() => groupByCoords(artifacts), [artifacts]);
   const maxCount = Math.max(1, ...groups.map((g) => g.artifacts.length));
   const selected = artifacts.find((a) => a.wpId === selectedWpId) ?? null;
-  const selectedCoords = selected ? artifactCoords(selected) : undefined;
+  const selectedCoords = selected ? displayCoords(selected) : undefined;
 
   return (
     <MapContainer

@@ -55,33 +55,7 @@ export function labelForSourceUrl(url: string): string {
 
 export const UNKNOWN_HOLDER = 'Unknown / Unresolved';
 
-const RETURNED_CATEGORY_PATTERN = /returned\s+plunder/i;
-const ETHIOPIA_HOLDER_PATTERN = /national\s+museum\s+of\s+ethiopia/i;
-
-/**
- * An artifact counts as repatriated to Ethiopia when ANY of these hold:
- *   - the Airtable `returned` flag is set;
- *   - it carries the source-site "Returned plunder" category;
- *   - it is currently held at the National Museum of Ethiopia.
- * The latter two are the reliable signals since the boolean is only sparsely
- * filled in. We scan every holder (not just the primary one) because the
- * Ethiopian holder often lacks a QID and so isn't chosen as the map pin's
- * primary holder.
- */
-export function isReturnedArtifact(card: ArtifactCard): boolean {
-  if (card.returned) return true;
-  if (
-    card.allCategories.some(
-      (c) => RETURNED_CATEGORY_PATTERN.test(c.name) || RETURNED_CATEGORY_PATTERN.test(c.rawName),
-    )
-  ) {
-    return true;
-  }
-  if (card.where && ETHIOPIA_HOLDER_PATTERN.test(card.where)) return true;
-  return card.allHolders.some(
-    (h) => ETHIOPIA_HOLDER_PATTERN.test(h.name) || ETHIOPIA_HOLDER_PATTERN.test(h.rawName),
-  );
-}
+export { isReturned as isReturnedArtifact } from '@/lib/repatriation';
 
 export interface ReviewWikidataHit {
   qid: string;
