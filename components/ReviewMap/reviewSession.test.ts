@@ -251,3 +251,51 @@ describe('empty holders (rule 8)', () => {
     expect(s.holder).toBeNull();
   });
 });
+
+describe('revealing an artifact ("Show in map")', () => {
+  const view = (s: ReturnType<typeof initSession>) => derive(s, ALL, null);
+
+  it('clears a holder that hides the artifact', () => {
+    let s = reduce(initSession(ALL, null), { t: 'selectHolder', name: 'British Library' }, ALL, null);
+    s = reduce(s, { t: 'reveal', wpId: 'a' }, ALL, null);
+    expect(s.holder).toBeNull();
+    expect(view(s).selected?.wpId).toBe('a');
+    expect(s.hasNavigated).toBe(true);
+    expect(s.focusToken).toBe(1); // only the holder pick bumped it
+  });
+
+  it('turns returned-only off when it hides the artifact', () => {
+    let s = reduce(initSession(ALL, null), { t: 'toggleReturnedOnly' }, ALL, null);
+    s = reduce(s, { t: 'reveal', wpId: 'b' }, ALL, null);
+    expect(s.showReturnedOnly).toBe(false);
+    expect(s.showWeakLink).toBe(false);
+    expect(view(s).selected?.wpId).toBe('b');
+  });
+
+  it('turns weak links on for a weak link or a source-less artifact', () => {
+    let s = reduce(initSession(ALL, null), { t: 'reveal', wpId: 'w' }, ALL, null);
+    expect(s.showWeakLink).toBe(true);
+    expect(view(s).selected?.wpId).toBe('w');
+
+    s = reduce(initSession(ALL, null), { t: 'toggleReturnedOnly' }, ALL, null);
+    s = reduce(s, { t: 'reveal', wpId: 'n' }, ALL, null);
+    expect(s).toMatchObject({ showWeakLink: true, showReturnedOnly: false });
+    expect(view(s).selected?.wpId).toBe('n');
+  });
+
+  it('leaves the filters alone when the artifact is already visible', () => {
+    const start = reduce(initSession(ALL, null), { t: 'selectHolder', name: 'British Museum' }, ALL, null);
+    const s = reduce(start, { t: 'reveal', wpId: 'b' }, ALL, null);
+    expect(s).toEqual({ ...start, selectedWpId: 'b', hasNavigated: true });
+  });
+
+  it('keeps hasNavigated false when revealing the deep-linked artifact', () => {
+    const s = reduce(initSession(ALL, 'a'), { t: 'reveal', wpId: 'a' }, ALL, 'a');
+    expect(s.hasNavigated).toBe(false);
+  });
+
+  it('ignores an unknown artifact', () => {
+    const start = initSession(ALL, null);
+    expect(reduce(start, { t: 'reveal', wpId: 'missing' }, ALL, null)).toBe(start);
+  });
+});

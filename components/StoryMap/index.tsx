@@ -26,7 +26,7 @@ export default function StoryMap({ artifacts, initialView, initialQid }: Props) 
   const library = libraryArtifacts(artifacts);
 
   const showInMap = (qid: string) => {
-    dispatch({ t: 'selectArtifact', wpId: qid });
+    dispatch({ t: 'reveal', wpId: qid });
     setActiveView('map');
   };
 

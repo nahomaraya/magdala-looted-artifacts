@@ -26,6 +26,8 @@ export type SessionAction =
   | { t: 'toggleReturnedOnly' }
   | { t: 'selectHolder'; name: string | null }
   | { t: 'selectArtifact'; wpId: string }
+  /** Select an artifact, first loosening any filter that hides it ("Show in map"). */
+  | { t: 'reveal'; wpId: string }
   | { t: 'next' }
   | { t: 'prev' };
 
@@ -165,6 +167,27 @@ export function reduce(
         selectedWpId: action.wpId,
         hasNavigated: state.hasNavigated || action.wpId !== pinnedWpId,
       };
+    case 'reveal': {
+      const card = artifacts.find((a) => a.wpId === action.wpId);
+      if (!card) return state;
+      const shown = filteredFor(state, visibleFor(state, artifacts, pinnedWpId)).includes(card);
+      // Loosen only what's needed: no holder, no returned-only, and weak links
+      // on only for an artifact the default visibility hides. Not a holder
+      // pick, so the focus token stays put.
+      const next: SessionState = shown
+        ? state
+        : {
+            ...state,
+            holder: null,
+            showReturnedOnly: false,
+            showWeakLink: state.showWeakLink || card.weakLink || card.sourceLinks.length === 0,
+          };
+      return {
+        ...next,
+        selectedWpId: card.wpId,
+        hasNavigated: state.hasNavigated || card.wpId !== pinnedWpId,
+      };
+    }
     case 'next':
     case 'prev': {
       // Rule 6: wrapping navigation; an unfound selection lands on index 0.
