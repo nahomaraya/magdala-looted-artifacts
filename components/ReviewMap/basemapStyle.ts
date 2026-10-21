@@ -22,13 +22,28 @@ export function restyleBasemap(map: MapLibreMap): void {
       case 'background':
         map.setPaintProperty(id, 'background-color', BACKGROUND);
         break;
+      case 'raster':
+        // The natural_earth shaded relief: light, and still at ~0.55 opacity
+        // around /map's opening zoom.
+        map.setPaintProperty(id, 'raster-opacity', 0.15);
+        map.setPaintProperty(id, 'raster-saturation', -1);
+        break;
       case 'fill':
         if (has(id, ['water'])) map.setPaintProperty(id, 'fill-color', WATER);
         else if (has(id, ['land', 'park'])) map.setPaintProperty(id, 'fill-color', LAND);
+        else if (has(id, ['aeroway'])) map.setPaintProperty(id, 'fill-color', LINE);
+        else if (has(id, ['building'])) {
+          map.setPaintProperty(id, 'fill-color', LAND);
+          if (layer.paint && 'fill-outline-color' in layer.paint) {
+            map.setPaintProperty(id, 'fill-outline-color', LINE);
+          }
+        }
         break;
       case 'line':
         if (has(id, ['water'])) map.setPaintProperty(id, 'line-color', WATER);
-        else if (has(id, ['road', 'tunnel', 'bridge', 'boundary'])) map.setPaintProperty(id, 'line-color', LINE);
+        else if (has(id, ['road', 'tunnel', 'bridge', 'boundary', 'park_outline', 'aeroway'])) {
+          map.setPaintProperty(id, 'line-color', LINE);
+        }
         break;
       case 'symbol':
         // Not every text symbol: highway shields draw their text on a light
