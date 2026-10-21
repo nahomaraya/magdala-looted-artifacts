@@ -89,37 +89,49 @@ export function parseCommonsFiles(json: unknown, category: string): CommonsImage
 }
 
 async function fetchCategory(category: string): Promise<CommonsImage[]> {
-  try {
-    const params = new URLSearchParams({
-      action: 'query',
-      generator: 'categorymembers',
-      gcmtitle: `Category:${category}`,
-      gcmtype: 'file',
-      gcmlimit: '200',
-      prop: 'imageinfo',
-      iiprop: 'url|extmetadata',
-      iiurlwidth: '480',
-      format: 'json',
-    });
-    const res = await fetch(`${COMMONS_API}?${params}`, {
-      headers: { 'User-Agent': USER_AGENT },
-    });
-    if (!res.ok) throw new Error(`Commons responded ${res.status}`);
-    return parseCommonsFiles(await res.json(), category);
-  } catch (err) {
-    console.error(`Commons category "${category}" failed:`, err);
-    return [];
-  }
+  const params = new URLSearchParams({
+    action: 'query',
+    generator: 'categorymembers',
+    gcmtitle: `Category:${category}`,
+    gcmtype: 'file',
+    gcmlimit: '200',
+    prop: 'imageinfo',
+    iiprop: 'url|extmetadata',
+    iiurlwidth: '480',
+    format: 'json',
+  });
+  const res = await fetch(`${COMMONS_API}?${params}`, {
+    headers: { 'User-Agent': USER_AGENT },
+  });
+  if (!res.ok) throw new Error(`Commons responded ${res.status}`);
+  return parseCommonsFiles(await res.json(), category);
 }
 
+/**
+ * Throws when ANY category fails, so unstable_cache never stores a partial
+ * list (and a stale entry survives a failed revalidation).
+ */
 async function fetchHeroImages(): Promise<CommonsImage[]> {
-  const perCategory = await Promise.all(HERO_CATEGORIES.map(fetchCategory));
+  const settled = await Promise.allSettled(HERO_CATEGORIES.map(fetchCategory));
+  const failed = settled.flatMap((r, i) =>
+    r.status === 'rejected' ? [{ category: HERO_CATEGORIES[i], reason: r.reason }] : [],
+  );
+  if (failed.length > 0) {
+    for (const { category, reason } of failed) {
+      console.error(`Commons category "${category}" failed:`, reason);
+    }
+    throw new Error(`Commons hero images unavailable: ${failed.map((f) => f.category).join(', ')}`);
+  }
+
   const seen = new Set<string>();
   const out: CommonsImage[] = [];
-  for (const image of perCategory.flat()) {
-    if (seen.has(image.title)) continue;
-    seen.add(image.title);
-    out.push(image);
+  for (const result of settled) {
+    if (result.status !== 'fulfilled') continue;
+    for (const image of result.value) {
+      if (seen.has(image.title)) continue;
+      seen.add(image.title);
+      out.push(image);
+    }
   }
   return out;
 }
@@ -134,7 +146,14 @@ const cachedFetch = unstable_cache(fetchHeroImages, ['commons-hero'], {
   tags: [COMMONS_HERO_TAG],
 });
 
-/** Free-licensed hero photographs from the Commons hero categories — cached. */
+/**
+ * Free-licensed hero photographs from the Commons hero categories — cached.
+ * Never throws: a Commons failure yields [] so the front page still renders.
+ */
 export async function getHeroImages(): Promise<CommonsImage[]> {
-  return cachedFetch();
+  try {
+    return await cachedFetch();
+  } catch {
+    return []; // already logged per category in fetchHeroImages
+  }
 }

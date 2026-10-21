@@ -1,7 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+// Identity cache that records whether the inner function resolved or rejected:
+// a rejection is what keeps unstable_cache from storing a result.
+const cacheOutcomes = vi.hoisted(() => [] as ('resolved' | 'rejected')[]);
+
 vi.mock('next/cache', () => ({
-  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+  unstable_cache:
+    <T extends (...args: never[]) => Promise<unknown>>(fn: T) =>
+    async (...args: Parameters<T>) => {
+      try {
+        const result = await fn(...args);
+        cacheOutcomes.push('resolved');
+        return result;
+      } catch (err) {
+        cacheOutcomes.push('rejected');
+        throw err;
+      }
+    },
 }));
 
 import { HERO_CATEGORIES, getHeroImages, parseCommonsFiles } from '@/lib/commonsImages';
@@ -116,6 +131,7 @@ describe('parseCommonsFiles', () => {
 
 describe('getHeroImages', () => {
   afterEach(() => {
+    cacheOutcomes.length = 0;
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -142,8 +158,10 @@ describe('getHeroImages', () => {
     expect(calls[0][1].headers).toMatchObject({ 'User-Agent': USER_AGENT });
   });
 
-  it("returns the other category's images when one category's fetch rejects", async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+  // Deliberately not the other category's images: a partial list would be
+  // cached for 24 h, so the cached function throws and getHeroImages returns [].
+  it('returns [] and caches nothing when one category fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
@@ -154,12 +172,9 @@ describe('getHeroImages', () => {
       }),
     );
 
-    const images = await getHeroImages();
-    expect(images).toHaveLength(1);
-    expect(images[0]).toMatchObject({
-      title: 'File:Expedition.jpg',
-      category: HERO_CATEGORIES[1],
-    });
+    await expect(getHeroImages()).resolves.toEqual([]);
+    expect(cacheOutcomes).toEqual(['rejected']);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 
   it('treats a non-OK response as a failed category', async () => {
@@ -169,6 +184,7 @@ describe('getHeroImages', () => {
       vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) }) as Response),
     );
     await expect(getHeroImages()).resolves.toEqual([]);
+    expect(cacheOutcomes).toEqual(['rejected']);
   });
 
   it('dedupes a file listed in both categories by title', async () => {
@@ -181,5 +197,6 @@ describe('getHeroImages', () => {
     const images = await getHeroImages();
     expect(images).toHaveLength(1);
     expect(images[0].category).toBe(HERO_CATEGORIES[0]);
+    expect(cacheOutcomes).toEqual(['resolved']);
   });
 });
