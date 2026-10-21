@@ -41,19 +41,34 @@ interface CommonsPage {
 }
 
 const ENTITIES: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&quot;': '"',
-  '&#39;': "'",
-  '&nbsp;': ' ',
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
 };
 
+// An element styled display:none, with its content. Templates such as
+// {{Unknown author}} repeat their text in a hidden span; nested elements of
+// the same tag inside a hidden one are not expected.
+const HIDDEN_ELEMENT =
+  /<(\w+)\b[^>]*\bstyle\s*=\s*(["'])[^"']*display\s*:\s*none[^"']*\2[^>]*>[\s\S]*?<\/\1\s*>/gi;
+
+function decodeEntity(entity: string, body: string): string {
+  if (body[0] === '#') {
+    const code = body[1] === 'x' || body[1] === 'X' ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+    return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+  }
+  return ENTITIES[body] ?? entity;
+}
+
 /** Commons returns the artist as an HTML fragment; reduce it to plain text. */
-function htmlToText(html: string): string {
+export function htmlToText(html: string): string {
   return html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (m) => ENTITIES[m])
+    .replace(HIDDEN_ELEMENT, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, decodeEntity)
     .replace(/\s+/g, ' ')
     .trim();
 }

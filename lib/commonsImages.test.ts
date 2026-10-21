@@ -19,7 +19,7 @@ vi.mock('next/cache', () => ({
     },
 }));
 
-import { HERO_CATEGORIES, getHeroImages, parseCommonsFiles } from '@/lib/commonsImages';
+import { HERO_CATEGORIES, getHeroImages, htmlToText, parseCommonsFiles } from '@/lib/commonsImages';
 import { USER_AGENT } from '@/lib/constants';
 
 /** One imageinfo page, shaped like Commons' generator=categorymembers response. */
@@ -126,6 +126,23 @@ describe('parseCommonsFiles', () => {
     expect(parseCommonsFiles({ batchcomplete: '' }, 'x')).toEqual([]);
     expect(parseCommonsFiles(null, 'x')).toEqual([]);
     expect(parseCommonsFiles('nope', 'x')).toEqual([]);
+  });
+});
+
+describe('htmlToText', () => {
+  it('drops the hidden copy {{Unknown author}} emits', () => {
+    expect(htmlToText('Unknown author<span style="display: none;">Unknown author</span>')).toBe(
+      'Unknown author',
+    );
+    expect(htmlToText('A<span style="color:red;display:none">hidden</span>')).toBe('A');
+  });
+
+  it('replaces tags with a space', () => {
+    expect(htmlToText('A<br>B')).toBe('A B');
+  });
+
+  it('decodes named and numeric entities', () => {
+    expect(htmlToText('Smith &#38; Jones&#x27;s &amp; co')).toBe("Smith & Jones's & co");
   });
 });
 
