@@ -2,11 +2,40 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ImagePlaceholder from '@/components/Artifact/ImagePlaceholder';
 import { mapHref } from '@/components/StoryMap/views';
+import { type CommonsImage, commonsFilePageUrl, fileTitleFromFilePath } from '@/lib/commonsImages';
 import type { FeaturedArtifact } from '@/lib/featured';
 import { FOCUS_RING } from './focus';
 
+const creditLinkClass = `wrap-break-word underline hover:text-gold ${FOCUS_RING}`;
+
+/** Author + licence of a card's image, or a link to its Commons file page when the credit is unknown. */
+function ImageCredit({ image, credits }: { image: string; credits: Map<string, CommonsImage> }) {
+  const title = fileTitleFromFilePath(image);
+  if (!title) return null;
+  const credit = credits.get(title);
+  return (
+    <p className="mt-auto pt-2 text-sm text-parchment-dim">
+      <a
+        href={credit ? credit.pageUrl : commonsFilePageUrl(title)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={creditLinkClass}
+      >
+        {credit ? `${credit.artist} · ${credit.license}` : 'File on Wikimedia Commons ↗'}
+      </a>
+    </p>
+  );
+}
+
 /** Featured artifact cards, each opening the artifact on the map. Omitted when there are none. */
-export default function FeaturedGrid({ featured }: { featured: FeaturedArtifact[] }) {
+export default function FeaturedGrid({
+  featured,
+  credits,
+}: {
+  featured: FeaturedArtifact[];
+  /** Image credits keyed by Commons file title (see getFileCredits). */
+  credits: Map<string, CommonsImage>;
+}) {
   if (featured.length === 0) return null;
   return (
     <section aria-labelledby="featured-title">
@@ -38,6 +67,7 @@ export default function FeaturedGrid({ featured }: { featured: FeaturedArtifact[
               </h3>
               {card.holder && <p className="text-base text-parchment-dim">{card.holder.name}</p>}
               {pinText && <p className="mt-2 text-base text-parchment">{pinText}</p>}
+              {image && <ImageCredit image={image} credits={credits} />}
             </div>
           </li>
         ))}

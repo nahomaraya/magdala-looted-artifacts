@@ -19,7 +19,15 @@ vi.mock('next/cache', () => ({
     },
 }));
 
-import { HERO_CATEGORIES, getHeroImages, htmlToText, parseCommonsFiles } from '@/lib/commonsImages';
+import {
+  HERO_CATEGORIES,
+  commonsFilePageUrl,
+  fileTitleFromFilePath,
+  getFileCredits,
+  getHeroImages,
+  htmlToText,
+  parseCommonsFiles,
+} from '@/lib/commonsImages';
 import { USER_AGENT } from '@/lib/constants';
 
 /** One imageinfo page, shaped like Commons' generator=categorymembers response. */
@@ -215,5 +223,89 @@ describe('getHeroImages', () => {
     expect(images).toHaveLength(1);
     expect(images[0].category).toBe(HERO_CATEGORIES[0]);
     expect(cacheOutcomes).toEqual(['resolved']);
+  });
+});
+
+describe('fileTitleFromFilePath', () => {
+  it('turns a Special:FilePath URL into a File: title', () => {
+    expect(
+      fileTitleFromFilePath(
+        'http://commons.wikimedia.org/wiki/Special:FilePath/Primo%20stile%20di%20gondar%2C%20kwer%27ata_re%27esu.jpg',
+      ),
+    ).toBe("File:Primo stile di gondar, kwer'ata re'esu.jpg");
+  });
+
+  it('returns null for a URL that is not a Special:FilePath URL or is malformed', () => {
+    expect(fileTitleFromFilePath('https://example.com/a.jpg')).toBeNull();
+    expect(fileTitleFromFilePath('http://commons.wikimedia.org/wiki/Special:FilePath/')).toBeNull();
+    expect(fileTitleFromFilePath('http://commons.wikimedia.org/wiki/Special:FilePath/%E0%A4%A')).toBeNull();
+  });
+});
+
+describe('commonsFilePageUrl', () => {
+  it('links the file description page', () => {
+    expect(commonsFilePageUrl("File:Kwer'ata re'esu?.jpg")).toBe(
+      "https://commons.wikimedia.org/wiki/File:Kwer'ata_re'esu%3F.jpg",
+    );
+  });
+});
+
+describe('getFileCredits', () => {
+  afterEach(() => {
+    cacheOutcomes.length = 0;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  const ok = (body: unknown) => ({ ok: true, json: async () => body }) as Response;
+
+  it('fetches every title in one call and keys free-licensed files by requested title', async () => {
+    const body = response(
+      page('File:Free one.jpg', { LicenseShortName: 'CC BY 3.0', Artist: 'Sailko' }),
+      page('File:Locked.jpg', { LicenseShortName: 'All rights reserved', Artist: 'Someone' }),
+    );
+    // Commons reports how it normalised a requested title.
+    const normalized = [{ from: 'File:Free_one.jpg', to: 'File:Free one.jpg' }];
+    const fetchMock = vi.fn(async () => ok({ ...body, query: { ...body.query, normalized } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const credits = await getFileCredits(['File:Free_one.jpg', 'File:Locked.jpg']);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = (fetchMock.mock.calls as unknown as [string, RequestInit][])[0];
+    const params = new URL(url).searchParams;
+    expect(params.get('titles')).toBe('File:Free_one.jpg|File:Locked.jpg');
+    expect(params.get('prop')).toBe('imageinfo');
+    expect(params.get('iiprop')).toBe('url|extmetadata');
+    expect(params.get('iiurlwidth')).toBe('480');
+    expect(init.headers).toMatchObject({ 'User-Agent': USER_AGENT });
+
+    expect([...credits.keys()]).toEqual(['File:Free_one.jpg']);
+    expect(credits.get('File:Free_one.jpg')).toMatchObject({
+      title: 'File:Free one.jpg',
+      artist: 'Sailko',
+      license: 'CC BY 3.0',
+      pageUrl: 'https://commons.wikimedia.org/wiki/File:Free_one.jpg',
+    });
+    expect(cacheOutcomes).toEqual(['resolved']);
+  });
+
+  it('returns an empty Map and caches nothing when Commons fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) }) as Response),
+    );
+    const credits = await getFileCredits(['File:A.jpg']);
+    expect(credits.size).toBe(0);
+    expect(cacheOutcomes).toEqual(['rejected']);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('makes no request for no titles', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await getFileCredits([])).size).toBe(0);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

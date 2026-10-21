@@ -172,3 +172,91 @@ export async function getHeroImages(): Promise<CommonsImage[]> {
     return []; // already logged per category in fetchHeroImages
   }
 }
+
+// ── Credits for featured artifact images ───────────────────────────────────
+
+const FILE_PATH_MARKER = '/Special:FilePath/';
+
+/**
+ * Wikidata P18 values are Special:FilePath URLs; this returns the Commons
+ * file title they point at ("File:Foo bar.jpg"), or null for any other URL.
+ */
+export function fileTitleFromFilePath(url: string): string | null {
+  const at = url.indexOf(FILE_PATH_MARKER);
+  if (at < 0) return null;
+  let name: string;
+  try {
+    name = decodeURIComponent(url.slice(at + FILE_PATH_MARKER.length)).replace(/_/g, ' ').trim();
+  } catch {
+    return null; // malformed percent-encoding
+  }
+  return name ? `File:${name}` : null;
+}
+
+/** A file's Commons description page, for when its credit is unknown. */
+export function commonsFilePageUrl(title: string): string {
+  const name = title.replace(/^File:/, '').replace(/ /g, '_');
+  return `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(name)}`;
+}
+
+/** Commons allows at most 50 titles per query. */
+const TITLES_PER_QUERY = 50;
+
+/**
+ * Credits keyed by requested title. Throws on any failed request so
+ * unstable_cache never stores a partial result. Returns entries, not a Map:
+ * the Data Cache stores JSON.
+ */
+async function fetchFileCredits(titles: string[]): Promise<[string, CommonsImage][]> {
+  const out: [string, CommonsImage][] = [];
+  for (let i = 0; i < titles.length; i += TITLES_PER_QUERY) {
+    const batch = titles.slice(i, i + TITLES_PER_QUERY);
+    const params = new URLSearchParams({
+      action: 'query',
+      titles: batch.join('|'),
+      prop: 'imageinfo',
+      iiprop: 'url|extmetadata',
+      iiurlwidth: '480',
+      format: 'json',
+    });
+    const res = await fetch(`${COMMONS_API}?${params}`, {
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    if (!res.ok) throw new Error(`Commons responded ${res.status}`);
+    const json = await res.json();
+
+    // Not from a hero category, so no category.
+    const byTitle = new Map(parseCommonsFiles(json, '').map((img) => [img.title, img]));
+    const normalized = new Map<string, string>(
+      ((json as { query?: { normalized?: { from: string; to: string }[] } })?.query?.normalized ?? []).map(
+        (n) => [n.from, n.to],
+      ),
+    );
+    for (const title of batch) {
+      const image = byTitle.get(normalized.get(title) ?? title);
+      if (image) out.push([title, image]);
+    }
+  }
+  return out;
+}
+
+const cachedFileCredits = unstable_cache(fetchFileCredits, ['commons-file-credits'], {
+  revalidate: COMMONS_REVALIDATE_SECONDS,
+  tags: [COMMONS_HERO_TAG],
+});
+
+/**
+ * Author + licence for the given Commons files (e.g. featured artifact
+ * images), keyed by the title as given — cached. Files that aren't
+ * free-licensed are absent. Never throws: a Commons failure yields an empty Map.
+ */
+export async function getFileCredits(titles: string[]): Promise<Map<string, CommonsImage>> {
+  const unique = [...new Set(titles)].sort();
+  if (unique.length === 0) return new Map();
+  try {
+    return new Map(await cachedFileCredits(unique));
+  } catch (err) {
+    console.error('Commons file credits unavailable:', err);
+    return new Map();
+  }
+}

@@ -1,15 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import type { CommonsImage } from '@/lib/commonsImages';
+import { type CommonsImage, fileTitleFromFilePath } from '@/lib/commonsImages';
 import type { FeaturedArtifact } from '@/lib/featured';
 import { FOCUS_RING } from './focus';
 
 const MAX_TILES = 12;
 
 interface Tile {
-  key: string;
   src: string;
-  alt: string;
+  /** Credit-line entry; every tile has one. */
+  credit: CommonsImage;
 }
 
 /** "File:Fortress of Magdala.jpg" → "Fortress of Magdala". */
@@ -19,24 +19,33 @@ function fileLabel(title: string): string {
 
 /**
  * Sepia collage of up to 12 photographs — featured artifact images first, then
- * Commons hero images — behind the page title. Without Commons images it is a
- * collage of featured images only; with no images at all, plain navy.
+ * Commons hero images — behind the page title. A featured image is used only
+ * once its Commons credit (free licence) is known. Without Commons it is plain
+ * navy. Tiles are decorative; the credits line names every photograph.
  */
 export default function HeroCollage({
   featured,
   heroImages,
+  credits,
 }: {
   featured: FeaturedArtifact[];
   heroImages: CommonsImage[];
+  /** Featured image credits keyed by Commons file title (see getFileCredits). */
+  credits: Map<string, CommonsImage>;
 }) {
-  const featuredTiles: Tile[] = featured
-    .flatMap((f) => (f.image ? [{ key: f.card.wpId, src: f.image, alt: f.card.title }] : []))
-    .slice(0, MAX_TILES);
-  const commons = heroImages.slice(0, MAX_TILES - featuredTiles.length);
-  const tiles: Tile[] = [
-    ...featuredTiles,
-    ...commons.map((img) => ({ key: img.title, src: img.thumbUrl, alt: fileLabel(img.title) })),
-  ];
+  const tiles: Tile[] = [];
+  const used = new Set<string>();
+  const add = (src: string, credit: CommonsImage) => {
+    if (tiles.length >= MAX_TILES || used.has(credit.title)) return;
+    used.add(credit.title);
+    tiles.push({ src, credit });
+  };
+  for (const f of featured) {
+    const title = f.image ? fileTitleFromFilePath(f.image) : null;
+    const credit = title ? credits.get(title) : undefined;
+    if (f.image && credit) add(f.image, credit);
+  }
+  for (const img of heroImages) add(img.thumbUrl, img);
 
   return (
     <section aria-labelledby="front-title">
@@ -44,10 +53,10 @@ export default function HeroCollage({
         {tiles.length > 0 && (
           <div className="absolute inset-0 grid grid-cols-3 gap-1 sm:grid-cols-4">
             {tiles.map((tile) => (
-              <div key={tile.key} className="relative overflow-hidden">
+              <div key={tile.credit.title} className="relative overflow-hidden">
                 <Image
                   src={tile.src}
-                  alt={tile.alt}
+                  alt=""
                   fill
                   loading="eager"
                   sizes="(min-width: 640px) 25vw, 33vw"
@@ -75,10 +84,10 @@ export default function HeroCollage({
         </div>
       </div>
 
-      {commons.length > 0 && (
+      {tiles.length > 0 && (
         <p className="mt-2 text-sm leading-relaxed text-parchment-dim">
           Photographs from Wikimedia Commons:{' '}
-          {commons.map((img, i) => (
+          {tiles.map(({ credit: img }, i) => (
             <span key={img.title}>
               {i > 0 && '; '}
               <a
