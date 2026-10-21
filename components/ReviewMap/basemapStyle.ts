@@ -31,7 +31,9 @@ export function restyleBasemap(map: MapLibreMap): void {
         else if (has(id, ['road', 'tunnel', 'bridge', 'boundary'])) map.setPaintProperty(id, 'line-color', LINE);
         break;
       case 'symbol':
-        if (has(id, ['label', 'name'])) {
+        // Not every text symbol: highway shields draw their text on a light
+        // shield icon and stay as the style has them.
+        if (has(id, ['label', 'name', 'poi', 'airport'])) {
           map.setPaintProperty(id, 'text-color', LABEL);
           map.setPaintProperty(id, 'text-halo-color', BACKGROUND);
         }
