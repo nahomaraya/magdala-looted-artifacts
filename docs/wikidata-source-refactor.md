@@ -189,8 +189,9 @@ local `data/categories_qids_filled.tsv` name map.
 
 ### Phase 4 — migration toggle (removed)
 The `ARTIFACT_SOURCE` switch (`wikidata | airtable | merge`) and `lib/artifactSource.ts`
-were removed once Wikidata became the only source. `app/review/page.tsx` and
-`lib/getLibraryArtifacts.ts` call `getWikidataArtifacts()` directly.
+were removed once Wikidata became the only source. `app/map/page.tsx` and
+`app/page.tsx` call `getWikidataArtifacts()` directly (`/review` now redirects
+to `/map`; `lib/getLibraryArtifacts.ts` is gone).
 
 ### Phase 5 — verify downstream is untouched
 - [ ] `/review`: pins render at holder coords; **returned items show in Addis**

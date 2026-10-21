@@ -1,4 +1,4 @@
-# Camera precedence stays in the Leaflet effect
+# Camera precedence stays in the map effect
 
 When we deepened the review session into a pure module (`reviewSession.ts`), we
 deliberately did **not** move the map camera into it. The session emits only a

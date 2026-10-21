@@ -181,6 +181,7 @@ describe('getHeroImages', () => {
     expect(first.get('iiprop')).toBe('url|extmetadata');
     expect(first.get('iiurlwidth')).toBe('480');
     expect(calls[0][1].headers).toMatchObject({ 'User-Agent': USER_AGENT });
+    expect(calls[0][1].signal).toBeInstanceOf(AbortSignal);
   });
 
   // Deliberately not the other category's images: a partial list would be
@@ -279,6 +280,7 @@ describe('getFileCredits', () => {
     expect(params.get('iiprop')).toBe('url|extmetadata');
     expect(params.get('iiurlwidth')).toBe('480');
     expect(init.headers).toMatchObject({ 'User-Agent': USER_AGENT });
+    expect(init.signal).toBeInstanceOf(AbortSignal);
 
     expect([...credits.keys()]).toEqual(['File:Free_one.jpg']);
     expect(credits.get('File:Free_one.jpg')).toMatchObject({

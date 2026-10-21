@@ -31,6 +31,8 @@ export async function sparqlPost(query: string, attempt = 0): Promise<Binding[]>
     },
     body: new URLSearchParams({ query, format: 'json' }),
     cache: 'no-store',
+    // A hanging WDQS request must not hold up a page on a cold cache.
+    signal: AbortSignal.timeout(8000),
   });
 
   if (res.status === 429 && attempt < 3) {

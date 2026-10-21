@@ -10,6 +10,9 @@ import { COMMONS_API, USER_AGENT } from './constants';
 
 export const HERO_CATEGORIES = ['Battle of Magdala', 'British Expedition to Abyssinia'] as const;
 
+/** A hanging Commons request must not hold up `/` on a cold cache. */
+const FETCH_TIMEOUT_MS = 8000;
+
 export interface CommonsImage {
   /** Commons file title, e.g. "File:Fortress of Magdala.jpg". */
   title: string;
@@ -117,6 +120,7 @@ async function fetchCategory(category: string): Promise<CommonsImage[]> {
   });
   const res = await fetch(`${COMMONS_API}?${params}`, {
     headers: { 'User-Agent': USER_AGENT },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`Commons responded ${res.status}`);
   return parseCommonsFiles(await res.json(), category);
@@ -221,6 +225,7 @@ async function fetchFileCredits(titles: string[]): Promise<[string, CommonsImage
     });
     const res = await fetch(`${COMMONS_API}?${params}`, {
       headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`Commons responded ${res.status}`);
     const json = await res.json();

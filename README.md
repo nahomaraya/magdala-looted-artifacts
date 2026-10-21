@@ -4,6 +4,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Wikidata is the only source, as of this change.
 
+`lib/legacyWpIds.json` (old `?wpId=` links → QIDs) is generated from `data/artifacts.csv` by `data/build_legacy_wpids.py`, which is local-only (`data/` is not committed).
+
 ## Getting Started
 
 First, run the development server:
