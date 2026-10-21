@@ -20,7 +20,7 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: 'Battle of Magdala — Looted Artifacts',
   description:
-    'An interactive map tracing the movement of artifacts looted during the 1868 Battle of Magdala, Ethiopia, to institutions worldwide.',
+    'A story map of objects taken at Maqdala, Ethiopia, after the Battle of Magdala in 1868, and the holders where they are today. Data from Wikidata.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
