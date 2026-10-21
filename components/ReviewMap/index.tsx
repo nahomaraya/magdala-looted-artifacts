@@ -6,7 +6,7 @@ import type { SessionAction, SessionView } from './reviewSession';
 import type { ViewId } from '../StoryMap/views';
 import { useDrawers } from './useDrawers';
 
-const ReviewMapLeaflet = dynamic(() => import('./ReviewMapLeaflet'), { ssr: false });
+const DispersalMap = dynamic(() => import('./DispersalMap'), { ssr: false });
 import { ArtifactPane } from '../Artifact';
 import LeftRail from './LeftRail';
 import MobileHeader from './MobileHeader';
@@ -72,7 +72,7 @@ export default function ReviewMap({ view, dispatch, activeView, onSelectView }: 
       />
 
       <div className="flex-1 min-w-0 relative">
-        <ReviewMapLeaflet
+        <DispersalMap
           artifacts={view.filtered}
           selectedWpId={view.selected?.wpId ?? null}
           onSelect={(wpId) => dispatch({ t: 'selectArtifact', wpId })}

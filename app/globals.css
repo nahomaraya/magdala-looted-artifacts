@@ -55,33 +55,6 @@ h4 {
   background: #daa520;
 }
 
-/* ── Leaflet overrides ─────────────────────────────────────── */
-.leaflet-container {
-  background: #1a0e06;
-  font-family: var(--font-source-sans), system-ui, sans-serif;
-}
-
-.leaflet-tile-pane {
-  filter: none;
-}
-
-.leaflet-popup-content-wrapper {
-  background: #251406;
-  border: 1px solid #4a2c0e;
-  border-radius: 6px;
-  color: #f4ead5;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-}
-
-.leaflet-popup-tip {
-  background: #251406;
-}
-
-.leaflet-popup-content {
-  font-family: var(--font-source-sans), system-ui, sans-serif;
-  margin: 10px 14px;
-}
-
 /* ── Pulsing Magdala marker ────────────────────────────────── */
 .pulse-container {
   position: relative;

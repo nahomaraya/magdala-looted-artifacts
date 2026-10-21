@@ -23,3 +23,8 @@ assertions. If that effect is edited, re-check both by hand.
 A future architecture review will likely flag "the camera is resolved in a
 browser-only module" as a deepening opportunity. That is this decision, not an
 oversight. Revisit it only if camera bugs recur.
+
+**Update 2026-10:** the map moved from Leaflet to MapLibre (`DispersalMap`). The
+rule applies unchanged to `DispersalMap`: its `useEffect` keeps the same
+precedence (fresh `focusToken` → fly to the holder once; no selection → world
+view on Maqdala; selection → frame Maqdala and the selected artifact).
